@@ -1,0 +1,34 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('manual_item_contents', function (Blueprint $table) {
+            $table->id();
+            $table->uuid('micd')->unique()->index();
+            $table->string('manual_uid');
+            $table->string('manual_iid');
+            $table->string('name');
+            $table->string('link');
+            $table->string('file_type');
+            $table->string('file_size');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('manual_item_contents');
+    }
+};

@@ -1,0 +1,98 @@
+@extends('layouts.app')
+
+@section('content')
+
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="py-3 mb-4"><span class="text-muted fw-light">Users/</span> Add Users</h4>
+
+        <div class="row">
+            <!-- Form Separator -->
+            <div class="col-xxl">
+                <div class="card mb-4">
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <h5 class="card-header">Add Users</h5>
+                    <form class="card-body overflow-hidden" method="POST" action="{{ route('users.create') }}">
+                        @csrf
+                        <h6>1. Account Details</h6>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label" for="first_name">First Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="first_name" name="first_name" class="form-control"
+                                       placeholder="John"/>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label" for="last_name">Last Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="last_name" name="last_name" class="form-control"
+                                       placeholder="Doe"/>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label" for="email">Email</label>
+                            <div class="col-sm-9">
+                                <div class="input-group input-group-merge">
+                                    <input
+                                        type="text"
+                                        id="email"
+                                        name="email"
+                                        class="form-control"
+                                        placeholder="info@binaniair.com"
+                                        aria-label="info@binaniair.com"
+                                        aria-describedby="email"/>
+                                    {{--                                    <span class="input-group-text" id="email">@binaniair.com</span>--}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label" for="last_name">Phone Number</label>
+                            <div class="col-sm-9">
+                                <input type="tel" id="phone" name="phone" class="form-control"
+                                       placeholder="+23481000000"/>
+                            </div>
+                        </div>
+                        <hr class="my-4 mx-n4"/>
+                        <h6>2. Roles</h6>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label" for="role">Role</label>
+                            <div class="col-sm-9">
+                                <select id="role" name="role" class="select2 form-select" data-allow-clear="true">
+                                    @foreach($Roles as $role)
+                                        @if($role->name == 'user')
+                                        <option selected value="{{ $role->name }}">{{ ucfirst($role->name) }}</option>
+                                        @else
+                                            <option value="{{ $role->name }}">{{ ucfirst($role->name) }}</option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="pt-4">
+                            <div class="row justify-content-end">
+                                <div class="col-sm-9">
+                                    <button type="submit" class="btn btn-primary me-sm-2 me-1">Submit</button>
+                                    <button type="reset" class="btn btn-outline-secondary">Reset</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    @push('scripts')
+        <!-- Page JS -->
+        <script src="{{ asset('storage/assets/js/form-layouts.js') }}"></script>
+    @endpush
+@endsection
