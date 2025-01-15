@@ -5,7 +5,7 @@
     class="light-style layout-wide customizer-hide"
     dir="ltr"
     data-theme="theme-default"
-    data-assets-path="storage/assets/"
+    data-assets-path="/storage/assets/"
     data-template="horizontal-menu-template">
 <head>
     <meta charset="utf-8"/>
@@ -13,12 +13,12 @@
         name="viewport"
         content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
 
-    <title>Login Basic - Pages | Materialize - Material Design HTML Admin Template</title>
+    <title>Confirm Password</title>
 
     <meta name="description" content=""/>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="storage/assets/img/favicon/favicon.ico"/>
+    <link rel="icon" type="image/x-icon" href="https://binaniair.com/storage/assets/dist/img/binaniair-logo.png"/>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com"/>

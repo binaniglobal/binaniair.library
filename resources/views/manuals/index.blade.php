@@ -1,3 +1,4 @@
+@php use App\Models\Manuals; @endphp
 @extends('layouts.app')
 
 @section('content')
@@ -23,51 +24,52 @@
                 <table class="dt-responsive table table-hover" id="dt-responsive">
                     <thead>
                     <tr>
-                        {{--                        <th>S/N</th>--}}
                         <th>Manuals</th>
                         <th>No of Folders</th>
-{{--                        <th>Status</th>--}}
-                        @if($user->hasRole(['super-admin', 'admin', 'librarian']))
+                        @can('can destroy')
                             <th>Action</th>
-                        @endif
+                        @endcan
                     </tr>
                     </thead>
                     <tbody class="table-border-bottom-0">
                     @foreach($Manuals as $manual)
                         @php
                             $manualCount = \App\Models\ManualsItem::where('manual_uid', $manual->mid)->count();
+
                         @endphp
-                        <tr>
-                            @if($manual->type == 0)
-                                <td><a href="{{ route('manual.items.index', $manual->mid) }}">{{ $manual->name }}</a>
-                                </td>
-                            @else
-                                <td>{{ $manual->name }}
-                                </td>
-                            @endif
-                            <td>{{ $manualCount }}</td>
-{{--                            <td>@if($manual->status == 0)--}}
-{{--                                    {{ __('Active') }}--}}
-{{--                                @else--}}
-{{--                                    {{ __('Disabled') }}--}}
-{{--                                @endif</td>--}}
-                            @if($user->hasRole(['super-admin', 'admin', 'librarian']))
-                                <td>
-                                    <div class="dropdown">
-                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                data-bs-toggle="dropdown">
-                                            <i class="mdi mdi-dots-vertical"></i>
-                                        </button>
-                                        <div class="dropdown-menu">
-                                            <a class="dropdown-item" href="#"
-                                            ><i class="mdi mdi-pencil-outline me-1"></i> Edit</a>
-                                            <a class="dropdown-item" href="#">
-                                            <i class="mdi mdi-trash-can-outline me-1"></i> Delete</a>
+                        @can('access-manual-' . $manual->name)
+                            <tr>
+                                @if($manual->type == 0)
+
+                                    <td>
+                                        <a href="{{ route('manual.items.index', $manual->mid) }}">{{ $manual->name }}</a>
+                                    </td>
+                                @else
+                                    <td>{{ $manual->name }}
+                                    </td>
+                                @endif
+                                <td>{{ $manualCount }}</td>
+                                {{--                            <td>@if($manual->status == 0)--}}
+                                {{--                                    {{ __('Active') }}--}}
+                                {{--                                @else--}}
+                                {{--                                    {{ __('Disabled') }}--}}
+                                {{--                                @endif</td>--}}
+                                @can('can destroy')
+                                    <td>
+                                        <div class="dropdown">
+                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                    data-bs-toggle="dropdown">
+                                                <i class="mdi mdi-dots-vertical"></i>
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                <a class="dropdown-item" href="#">
+                                                    <i class="mdi mdi-trash-can-outline me-1"></i> Delete</a>
+                                            </div>
                                         </div>
-                                    </div>
-                                </td>
-                            @endif
-                        </tr>
+                                    </td>
+                                @endcan
+                            </tr>
+                        @endcan
                     @endforeach
                     </tbody>
                 </table>
@@ -81,7 +83,7 @@
                 "responsive": true, "lengthChange": false, "autoWidth": false,
                 buttons: [
                     'pageLength',
-                    @if($user->hasRole(['super-admin', 'admin', 'librarian']))
+                        @if($user->hasRole(['super-admin', 'admin', 'librarian']))
                     {
                         html: '<a class="btn btn-primary" href="{{ route('manual.add') }}"><span class="fa fa-plus-circle" aria-hidden="true"></span> ' +
                             ' <i class="menu-icon tf-icons mdi mdi-book-account"></i>' +

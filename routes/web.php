@@ -5,12 +5,14 @@ use App\Http\Controllers\IssuingBooksController;
 use App\Http\Controllers\ManualItemContentController;
 use App\Http\Controllers\ManualsController;
 use App\Http\Controllers\ManualsItemController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RolesController;
 use App\Http\Controllers\UserController;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
-use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -20,87 +22,91 @@ Auth::routes([
     'register' => false,
 ]);
 
-Route::get('/link/storage', function (){
-    Artisan::call('storage:link');
-});
-Route::get('/email/verify', function () {
-    return view('auth.verify');
-})->middleware('auth')->name('verification.notice');
 
-Route::get('/email/verify/{id}/{hash}',
-    function (EmailVerificationRequest $request) {
-        $request->fulfill();
-
-        return redirect('/home')->with('success', 'Your email has been verified!');
-    })->middleware(['auth', 'signed'])->name('verification.verify');
-
-Route::post('/email/verification-notification', function (Request $request) {
-    $request->user()->sendEmailVerificationNotification();
-
-    return back()->with('message', 'Verification link sent!');
-})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
-
-Route::post('/email/verification-notification', function (Request $request) {
-    $user = $request->user();
-    if (!empty($user)) {
-        $user->sendEmailVerificationNotification();
+Route::get('/test-private-disk', function () {
+    try {
+        $result = Storage::disk('privateSubManual')->put('test.txt', 'This is a test file.');
+        return $result ? 'File written successfully!' : 'Failed to write file.';
+    } catch (\Exception $e) {
+        return $e->getMessage();
     }
-    return back()->with('message', 'Verification link resent!');
-})->middleware(['auth', 'throttle:6,1'])->name('verification.resend');
+});
+
 
 Route::middleware(['auth','role:super-admin|admin|librarian|user'])->group(function () {
 
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/manual/sub-manuals/file/{filename}', [HomeController::class, 'downloadSubManuals'])->name('download.submanuals');
+    Route::get('/manual/sub-manuals/content/file/{filename}', [HomeController::class, 'downloadSubManualsContent'])->name('download.contents');
+
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::put('/update', [ProfileController::class, 'update'])->name('profile.update');
 
     //Start Manuals
     Route::get('/manuals', [ManualsController::class, 'index'])->name('manual.index');
     Route::get('/manual/add', [ManualsController::class, 'show'])->name('manual.add');
     Route::post('/manual/create', [ManualsController::class, 'store'])->name('manual.create');
-    Route::post('/manual/edit', [ManualsController::class, 'edit'])->name('manual.edit');
-    Route::post('/manual/update', [ManualsController::class, 'update'])->name('manual.update');
     Route::post('/manual/destroy', [ManualsController::class, 'destroy'])->name('manual.destroy');
     //End of View Manuals
 
     //Start Manual Items
-    Route::get('/manual/items/{id}', [ManualsItemController::class, 'index'])->name('manual.items.index');
-    Route::get('/manual/items/{id}/add', [ManualsItemController::class, 'create'])->name('manual.items.show');
-    Route::post('/manual/items/create', [ManualsItemController::class, 'store'])->name('manual.items.add');
-    Route::get('/manual/items/{id}/edit', [ManualsItemController::class, 'edit'])->name('manual.items.edit');
-    Route::post('/manual/items/{id}/update/{ids}', [ManualsItemController::class, 'update'])->name('manual.items.update');
-    Route::get('/manual/items/{id}/destroy/{ids}', [ManualsItemController::class, 'destroy'])->name('manual.items.destroy');
+    Route::get('/manual/sub-manuals/{id}', [ManualsItemController::class, 'index'])->name('manual.items.index');
+    Route::get('/manual/sub-manuals/{id}/add', [ManualsItemController::class, 'create'])->name('manual.items.show');
+    Route::post('/manual/sub-manuals/create', [ManualsItemController::class, 'store'])->name('manual.items.add');
+    Route::get('/manual/sub-manuals/{id}/destroy/{ids}', [ManualsItemController::class, 'destroy'])->name('manual.items.destroy');
 
     //Start Manual Items Contents
-    Route::get('/manual/items/content/{id}', [ManualItemContentController::class, 'index'])->name('manual.items.content.index');
-    Route::get('/manual/items/content/{id}/add', [ManualItemContentController::class, 'create'])->name('manual.items.content.show');
-    Route::post('/manual/items/content/create', [ManualItemContentController::class, 'store'])->name('manual.items.content.add');
-    Route::post('/manual/items/content/{id}/edit', [ManualItemContentController::class, 'edit'])->name('manual.items.content.edit');
-    Route::post('/manual/items/content/{id}/update', [ManualItemContentController::class, 'update'])->name('manual.items.content.update');
-    Route::get('/manual/items/content/{id}/destroy/{ids}', [ManualItemContentController::class, 'destroy'])->name('manual.items.content.destroy');
+    Route::get('/manual/sub-manuals/content/{id}', [ManualItemContentController::class, 'index'])->name('manual.items.content.index');
+    Route::get('/manual/sub-manuals/content/{id}/add', [ManualItemContentController::class, 'create'])->name('manual.items.content.show');
+    Route::post('/manual/sub-manuals/content/create', [ManualItemContentController::class, 'store'])->name('manual.items.content.add');
+    Route::get('/manual/sub-manuals/content/{id}/destroy/{ids}', [ManualItemContentController::class, 'destroy'])->name('manual.items.content.destroy');
     //End Manual Items Contents
-
 
 });
 
-
 Route::middleware(['auth', 'role:super-admin|admin'])->group(function () {
+
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    //Add Permissions
+    Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions');
+    Route::get('/permissions/create', [PermissionController::class, 'create'])->name('permissions.create');
+    Route::post('/permissions/store', [PermissionController::class, 'store'])->name('permissions.store');
+    Route::get('/permissions/{id}/edit', [PermissionController::class, 'edit'])->name('permissions.edit');
+    Route::post('/permissions/update', [PermissionController::class, 'update'])->name('permissions.update');
+    Route::post('/permissions/destroy', [PermissionController::class, 'destroy'])->name('permissions.destroy');
+    //End Add Permissions
+
+});
+
+Route::middleware(['auth', 'role:super-admin'])->group(function () {
+    //Add Roles
+    Route::get('/roles', [RolesController::class, 'index'])->name('roles');
+    Route::get('/roles/create', [RolesController::class, 'create'])->name('roles.create');
+    Route::post('/roles/store', [RolesController::class, 'store'])->name('roles.store');
+    Route::get('/roles/{id}/edit', [RolesController::class, 'edit'])->name('roles.edit');
+    Route::post('/roles/update', [RolesController::class, 'update'])->name('roles.update');
+    Route::post('/roles/destroy', [RolesController::class, 'destroy'])->name('roles.destroy');
+    //End Add Roles
+});
+
+Route::middleware(['auth', 'role:super-admin|admin|librarian'])->group(function () {
     //Add Users
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/usersList', [UserController::class, 'listIndex'])->name('users.index.list');
     Route::get('/users/add', [UserController::class, 'show'])->name('users.add');
-    Route::get('/users/edit/{id}', [UserController::class, 'edit'])->name('users.edit');
+    Route::get('/users/d34{id}/{str}s/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::post('/users/create', [UserController::class, 'create'])->name('users.create');
-    Route::get('/users/update/{id}', [UserController::class, 'update'])->name('users.update');
-    Route::get('/users/destroy', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::put('/users/f{id}s/update', [UserController::class, 'update'])->name('users.update');
+    Route::get('/users/d{id}/{str}a/destroy', [UserController::class, 'destroy'])->name('users.destroy');
     //End Users
-});
 
-Route::middleware(['auth', 'role:super-admin|admin|librarian'])->group(function () {
+
     //Start Issuing Books
-
     //Route::get('/issue/books', [IssuingBooksController::class, 'index'])->name('issue.books.index');
     //Route::get('/issue/books/add', [IssuingBooksController::class, 'show'])->name('issue.books.show');
-    Route::post('/issue/books/create', [IssuingBooksController::class, 'create'])->name('issue.books.create');
-    Route::post('/issue/books/update', [IssuingBooksController::class, 'update'])->name('issue.books.update');
+//    Route::post('/issue/books/create', [IssuingBooksController::class, 'create'])->name('issue.books.create');
+//    Route::post('/issue/books/update', [IssuingBooksController::class, 'update'])->name('issue.books.update');
     //End Issuing Books
-
 });
+
+require __DIR__.'/mail.php';
+require __DIR__.'/storage.php';

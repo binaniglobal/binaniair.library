@@ -55,7 +55,7 @@
                         <div class="card-body">
                             <form action="{{ route('manual.items.add') }}" class="dropzone needsclick"
                                   enctype="multipart/form-data" method="POST"
-                                  id="dropzone-multi">
+                                  id="dropzone-multi" novalidate>
                                 @csrf
                                 <input hidden type="hidden" name="id" value="{{ $Id }}"/>
                                 <input hidden type="hidden" name="type" value="File"/>
@@ -65,7 +65,7 @@
                                 </div>
                                 <div class="fallback">
                                     <input name="files[]" type="file" />
-                                    <button type="submit">Upload</button>
+                                    <button class="btn btn-outline-primary" type="submit">Upload</button>
                                 </div>
                             </form>
                         </div>
@@ -78,5 +78,6 @@
     @push('scripts')
         <script src="{{ asset('storage/assets/vendor/libs/dropzone/dropzone.js') }}"></script>
 {{--        <script src="{{ asset('storage/assets/js/forms-file-upload.js') }}"></script>--}}
+
     @endpush
 @endsection

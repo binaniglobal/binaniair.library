@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\ManualItemContent;
 use App\Models\Manuals;
 use App\Models\ManualsItem;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Spatie\Permission\Models\Permission;
 
 class ManualsItemController extends Controller
 {
@@ -26,27 +30,32 @@ class ManualsItemController extends Controller
         $validate = $request->validate([
             'manual_name' => 'string',
             'type' => 'string',
-            'files' => 'array|max:5', // Limit to 5 uploads
-            'files.*' => 'file|mimes:jpg,png,jpeg,pdf,doc,docx,webp,xlsx|max:40960', // Validation rules for each file
+            'files' => 'array|max:10', // Limit to 5 uploads
+            'files.*' => 'file|mimes:pdf|max:40960', // Validation rules for each file
         ]);
         if (!empty($validate['type']) && $validate['type'] != 'Folder') {
             foreach ($request->file('files') as $key => $file) {
 
-//                $file->storeAs('public/storage/uploads', $file->getClientOriginalName());
-//                dd($request->all());
+                // Check if file is valid
+                if (!$file->isValid()) {
+                    return response()->json(['error' => 'Uploaded file is not valid'], 400);
+                }
+                //Please make sure there is no . It should only exist when there is a format after it.
                 $fileName = $file->getClientOriginalName();
+                $fileNameUnique = Str::random(4) . '_' . $fileName;
                 $manualsItem->miid = uuid_create(UUID_TYPE_DEFAULT);
                 $manualsItem->manual_uid = $request->id;
-                $manualsItem->name = $fileName;
-                $manualsItem->link = $file->storeAs('public/uploads/items', $fileName);
+                $manualsItem->name = Str::beforeLast($fileName, '.pdf');
+                $path = Storage::disk('privateSubManual')->putFileAs('', $file, $fileNameUnique);
+                $manualsItem->link = $path;
                 $manualsItem->file_size = $file->getSize();;
                 $manualsItem->file_type = $file->getClientMimeType();
                 $manualsItem->save();
 
-                return redirect(route('manual.items.index', $request->id))->with('success', 'Files uploaded successfully!');
+                return redirect(route('manual.items.index', $request->id))->with(['success', 'Files uploaded successfully!']);
             }
         } else {
-            ManualsItem::create([
+            $manual = ManualsItem::create([
                 'miid' => uuid_create(UUID_TYPE_DEFAULT),
                 'manual_uid' => $request->id,
                 'name' => $request->manual_name,
@@ -54,8 +63,29 @@ class ManualsItemController extends Controller
                 'file_size' => '0MB', // Size in byte
                 'file_type' => 'Folder',
             ]);
+            $getParentManual = $this->getManualById($request->id);
+            if ($manual) {
+                    $permissionName = "access-manual-{$getParentManual->name}.{$request->manual_name}";
+                    Permission::Create(['name' => $permissionName]);
+                    $users = User::role(['SuperAdmin', 'Admin', 'Librarian'])->get();
+
+                    foreach ($users as $user) {
+                        // Assign the permission to each user
+                        $user->givePermissionTo($permissionName);
+                    }
+            }
             return redirect(route('manual.items.index', $request->id))->with('success', 'Folder Created');
         }
+    }
+
+    private function getManualById($id)
+    {
+        return Manuals::where('mid', $id)->first();
+    }
+
+    private function getManualItemsById($id)
+    {
+        return ManualsItem::where('manual_uid', $id)->where('file_type', 'Folder')->get();
     }
 
     /**
@@ -79,7 +109,7 @@ class ManualsItemController extends Controller
      */
     public function edit($id)
     {
-        return view('manuals.items.edit', ['Id' => $id, 'Manual' => ManualsItem::where('miid', $id)->first()]);
+
     }
 
     /**
@@ -87,31 +117,64 @@ class ManualsItemController extends Controller
      */
     public function update($id, $ids, Request $request, ManualsItem $manualsItem)
     {
-        $manualsItem::where('miid', $id)->update(['name' => $request->manual_name, 'link' => $request->manual_name]);
-        return redirect(route('manual.items.index', $ids, $id))->with('success', 'File Updated');
+
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id, $ids, Request $request, ManualsItem $manualsItem, ManualItemContent $manualItemContent)
+    public
+    function destroy($id, $ids, Request $request, ManualsItem $manualsItem, ManualItemContent $manualItemContent)
     {
-        $path = $manualsItem::where('miid', $ids)->first();
-        if (!empty($path['file_type']) && $path['file_type'] != 'Folder') {
-            if (!empty($path['link'])) {
-                Storage::delete($path['link']);
-                $manualsItem::where('miid', $ids)->delete();
-                return redirect(route('manual.items.index', $id, $ids))->with('success', $path['name'].' File Deleted');
+        if (Auth::user()->can('can destroy')) {
+            $path = $manualsItem::where('manual_uid', $id)->where('miid', $ids)->first();
+            if (!empty($path['file_type']) && $path['file_type'] != 'Folder') {
+                if (Storage::disk('privateSubManual')->exists($path['link'])) {
+                    Storage::disk('privateSubManual')->delete($path['link']);
+                    $manualsItem::where('manual_uid', $id)->where('miid', $ids)->where('file_type', 'application/pdf')->delete();
+                    return redirect(route('manual.items.index', $id, $ids))->with('success', $path['name'] . ' File Deleted');
+                } else {
+                    return response()->json(['error' => 'File not found!'], 404);
+                }
+
+            } else {
+                $folderManual = $manualsItem::where('manual_uid', $id)->where('file_type', 'Folder')->get();
+                $folderManualContent = $manualItemContent::where('manual_iid', $id)->get();
+                foreach ($folderManual as $item) {
+                    if (Storage::disk('privateSubManual')->exists($item->link)) {
+                        Storage::disk('privateSubManual')->delete($item->link);
+                    }
+                }
+                foreach ($folderManualContent as $item) {
+                    if (Storage::disk('privateSubManualContent')->exists($item->link)) {
+                        Storage::disk('privateSubManualContent')->delete($item->link);
+                    }
+                }
+                $getParentManual = $this->getManualById($request->id);
+                $getManualItem = $this->getManualItemsById($request->id);
+                foreach ($getManualItem as $item) {
+                    $permissionName = "access-manual-{$getParentManual->name}.{$item->name}";
+                    $this->removePermissionFromAll($permissionName);
+                }
+                $manualsItem::where('manual_uid', $id)->where('file_type', 'Folder')->delete();
+                $manualItemContent::where('manual_iid', $id)->delete();
+                return redirect(route('manual.items.index', $id, $ids))->with('success', 'Folder Deleted');
             }
-        }else{
-            $manualsItem::where('miid', $ids)->delete();
-            $manualItemContent::where('manual_uid', $ids)->delete();
-            return redirect(route('manual.items.index', $id, $ids))->with('success', 'Folder');
+        } else {
+            return response()->json(['error' => 'You do not have permission to delete.'], 404);
         }
 
     }
 
-    public function formatBytes($bytes, $precision = 2)
+    private function removePermissionFromAll($permissionName)
+    {
+        $permission = Permission::findByName($permissionName);
+        // Remove the permission globally
+        $permission->delete();
+    }
+
+    public
+    function formatBytes($bytes, $precision = 2)
     {
         $units = array('B', 'KB', 'MB', 'GB', 'TB');
 

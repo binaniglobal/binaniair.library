@@ -5,7 +5,7 @@
     class="light-style layout-wide customizer-hide"
     dir="ltr"
     data-theme="theme-default"
-    data-assets-path="storage/assets/"
+    data-assets-path="/storage/assets/"
     data-template="horizontal-menu-template">
 <head>
     <meta charset="utf-8"/>
@@ -18,7 +18,7 @@
     <meta name="description" content=""/>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="storage/assets/img/favicon/favicon.ico"/>
+    <link rel="icon" type="image/x-icon" href="https://binaniair.com/storage/assets/dist/img/binaniair-logo.png"/>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com"/>

@@ -1,3 +1,4 @@
+@php use App\Models\Manuals; @endphp
 @extends('layouts.app')
 
 @section('content')
@@ -11,10 +12,11 @@
         <link rel="stylesheet" href="{{ url('storage/assets/vendor/libs/flatpickr/flatpickr.css') }}"/>
     @endpush
     <div class="container-xxl flex-grow-1 container-p-y">
-        <h4 class="py-3 mb-4"><span class="text-muted fw-light">Home /</span> Manuals Items</h4>
+        <h4 class="py-3 mb-4"><span class="text-muted fw-light">Home / <a href="#" onclick="history.back()">Manuals</a></span>
+            / {{ ucfirst($Manual->name) }}</h4>
         @php
             $user = Auth::user();
-
+            $size = new \App\Http\Controllers\ManualsItemController();
         @endphp
             <!-- Responsive Datatable -->
         <div class="card">
@@ -23,59 +25,63 @@
                     {{ session('success') }}
                 </div>
             @endif
-            <h5 class="card-header">Manual Items for {{ ucfirst($Manual->name) }}</h5>
+            <h5 class="card-header">{{ ucfirst($Manual->name) }}</h5>
             <div class="card-datatable table-responsive text-nowrap">
                 <table class="dt-responsive table table-hover" id="dt-responsive">
                     <thead>
                     <tr>
-                        <th>Manuals of {{ $Manual->name }}</th>
-                        <th>No of Files</th>
+                        <th>{{ $Manual->name }}</th>
                         <th>Type</th>
-                        @if($user->hasRole(['admin', 'librarian']))
+                        <th>No of Files / Size</th>
+                        @can('can destroy')
                             <th>Action</th>
-                        @endif
+                        @endcan
                     </tr>
                     </thead>
                     <tbody class="table-border-bottom-0">
                     @foreach($Items as $items)
                         @php
-                            $count = \App\Models\ManualItemContent::where('manual_uid',$items->miid)->count();
+                            $count = \App\Models\ManualItemContent::where('manual_uid', $items->miid)->count();
+                            $parentManual = Manuals::where('mid', $items->manual_uid)->first();
+//                                $secureDownload = \Illuminate\Support\Facades\Storage::download(asset(str_replace('public/', 'storage/',$items->link)));
                         @endphp
-                        <tr>
-                            @if($items->file_type == 'Folder')
-                                <td>
-                                    <a href="{{ route('manual.items.content.index', $items->miid) }}">{{ $items->name }}</a>
-                                </td>
-                            @else
-                                <td>
-                                    <a href="{{ asset(str_replace('public/', 'storage/',$items->link)) }}">{{ $items->name }}</a>
-                                </td>
-                            @endif
-                                <td>{{ $count }}</td>
-                            <td>{{ $items->file_type }}</td>
+                        @can('access-manual-'.$parentManual->name)
+                                <tr>
+                                    @if($items->file_type == 'Folder')
+                                        <td>
+                                            <a href="{{ route('manual.items.content.index', $items->miid) }}">{{ $items->name }}</a>
+                                        </td>
+                                    @else
+                                        <td>
+                                            {{--                                            <a href="{{ asset(str_replace('public/', 'storage/',$items->link)) }}">{{ $items->name }}</a>--}}
+                                            <a href="{{ route('download.submanuals',$items->link) }}">{{ $items->name }}</a>
+                                        </td>
+                                    @endif
 
-                            @if($user->hasRole(['admin', 'librarian']))
-                                <td>
-                                    <div class="dropdown">
-                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                data-bs-toggle="dropdown">
-                                            <i class="mdi mdi-dots-vertical"></i>
-                                        </button>
-                                        <div class="dropdown-menu">
-                                            @if($items->file_type == 'Folder')
-                                                <a class="dropdown-item"
-                                                   href="{{ route('manual.items.edit', ['id'=>$items->miid]) }}"
-                                                ><i class="mdi mdi-pencil-outline me-1"></i> Edit</a>
-                                            @endif
-                                            <a class="dropdown-item"
-                                               href="{{ route('manual.items.destroy', ['id'=>$items->manual_uid, 'ids'=>$items->miid]) }}"
-                                            ><i class="mdi mdi-trash-can-outline me-1"></i> Delete</a
-                                            >
-                                        </div>
-                                    </div>
-                                </td>
-                            @endif
-                        </tr>
+                                    <td>{{ $items->file_type=='application/pdf'?'PDF':$items->file_type }}</td>
+                                    @if($items->file_type == 'Folder')
+                                        <td>{{ $count }}</td>
+                                    @else
+                                        <td>{{ $size->formatBytes($items->file_size) }}</td>
+                                    @endif
+
+                                    @can('can destroy')
+                                        <td>
+                                            <div class="dropdown">
+                                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                        data-bs-toggle="dropdown">
+                                                    <i class="mdi mdi-dots-vertical"></i>
+                                                </button>
+                                                <div class="dropdown-menu">
+                                                    <a class="dropdown-item"
+                                                       href="{{ route('manual.items.destroy', ['id'=>$items->manual_uid, 'ids'=>$items->miid]) }}">
+                                                        <i class="mdi mdi-trash-can-outline me-1"></i> Delete</a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    @endcan
+                                </tr>
+                        @endcan
                     @endforeach
                     </tbody>
                 </table>
@@ -89,16 +95,17 @@
                 "responsive": true, "lengthChange": false, "autoWidth": false,
                 buttons: [
                     'pageLength',
-                        @if($user->hasRole(['super-admin', 'admin', 'librarian']))
+                        @can('can add')
                     {
                         html: '<a class="btn btn-primary" href="{{ route('manual.items.show', $Id) }}"><span class="fa fa-plus-circle" aria-hidden="true"></span> ' +
                             ' <i class="menu-icon tf-icons mdi mdi-book-account"></i>' +
+                            ' <i class="menu-icon tf-icons mdi mdi-file-content"></i>' +
                             ' </a>',
                         attr: {
                             class: 'btn btn-primary'
                         },
                     }
-                    @endif
+                    @endcan
                 ],
                 "language": {
                     "emptyTable": "<span class='text-success'>Empty table</span>"

@@ -12,6 +12,18 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, HasRoles;
 
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::deleting(function ($user) {
+            // Remove roles
+            $user->syncRoles([]);
+            // Remove Permission
+            $user->syncPermissions([]);
+        });
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -49,4 +61,5 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
+
 }

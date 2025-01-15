@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('storage/assets/vendor/libs/bootstrap-select/bootstrap-select.css') }}"/>
+    @endpush
 
     <div class="container-xxl flex-grow-1 container-p-y">
         <h4 class="py-3 mb-4"><span class="text-muted fw-light">Users/</span> Add Users</h4>
@@ -46,10 +49,10 @@
                                         id="email"
                                         name="email"
                                         class="form-control"
-                                        placeholder="info@binaniair.com"
-                                        aria-label="info@binaniair.com"
+                                        placeholder="info"
+                                        aria-label="info"
                                         aria-describedby="email"/>
-                                    {{--                                    <span class="input-group-text" id="email">@binaniair.com</span>--}}
+                                    <span class="input-group-text" id="email">@binaniair.com</span>
                                 </div>
                             </div>
                         </div>
@@ -61,21 +64,48 @@
                             </div>
                         </div>
                         <hr class="my-4 mx-n4"/>
-                        <h6>2. Roles</h6>
+                        <h6>2. Role & Permissions</h6>
                         <div class="row mb-3">
                             <label class="col-sm-3 col-form-label" for="role">Role</label>
                             <div class="col-sm-9">
-                                <select id="role" name="role" class="select2 form-select" data-allow-clear="true">
-                                    @foreach($Roles as $role)
-                                        @if($role->name == 'user')
-                                        <option selected value="{{ $role->name }}">{{ ucfirst($role->name) }}</option>
-                                        @else
-                                            <option value="{{ $role->name }}">{{ ucfirst($role->name) }}</option>
-                                        @endif
-                                    @endforeach
-                                </select>
+                                <div class="form-floating form-floating-outline">
+                                    <select id="role" name="role" class="selectpicker w-100" data-style="btn-default">
+                                        @foreach($Roles as $role)
+                                            @if($role->name == 'user')
+                                                <option selected
+                                                        value="{{ $role->name }}">{{ ucfirst($role->name) }}</option>
+                                            @else
+                                                <option value="{{ $role->name }}">{{ ucfirst($role->name) }}</option>
+                                            @endif
+
+                                        @endforeach
+                                    </select>
+                                    <label for="role">Role</label>
+                                </div>
                             </div>
                         </div>
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label" for="permission">Permissions</label>
+                            <!-- Select / Deselect All -->
+                            <div class="col-sm-9">
+                                <div class="form-floating form-floating-outline">
+                                    <select
+                                        id="permission"
+                                        name="permission[]"
+                                        class="selectpicker w-100"
+                                        data-style="btn-default"
+                                        multiple
+                                        data-actions-box="true">
+                                        @foreach($Permissions as $permission)
+                                            <option
+                                                value="{{ $permission->id }}">{{ ucfirst($permission->name) }}</option>
+                                        @endforeach
+                                    </select>
+                                    <label for="selectpickerSelectDeselect">Select / Deselect All</label>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="pt-4">
                             <div class="row justify-content-end">
                                 <div class="col-sm-9">
@@ -94,5 +124,9 @@
     @push('scripts')
         <!-- Page JS -->
         <script src="{{ asset('storage/assets/js/form-layouts.js') }}"></script>
+        <script src="{{ asset('storage/assets/vendor/libs/select2/select2.js') }}"></script>
+        <script src="{{ asset('storage/assets/vendor/libs/bootstrap-select/bootstrap-select.js') }}"></script>
+        <script src="{{ asset('storage/assets/js/forms-selects.js') }}"></script>
+        {{--        <script src="{{ asset('storage/') }}"></script>--}}
     @endpush
 @endsection

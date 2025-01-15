@@ -44,6 +44,23 @@ return [
             'throw' => false,
         ],
 
+        'privateSubManual' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/uploads/sub-manual'),
+            'url' => env('APP_URL').'/storage',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
+        'privateSubManualContent' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/uploads/content'),
+            'url' => env('APP_URL').'/storage',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

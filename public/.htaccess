@@ -19,3 +19,11 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Disable directory listing
+Options -Indexes
+
+# Restrict access to certain file types
+<FilesMatch "\.(pdf|doc|docx|txt)$">
+    Require all denied
+</FilesMatch>

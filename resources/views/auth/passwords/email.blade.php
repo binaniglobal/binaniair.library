@@ -5,7 +5,7 @@
     class="light-style layout-wide customizer-hide"
     dir="ltr"
     data-theme="theme-default"
-    data-assets-path="storage/assets/"
+    data-assets-path="/storage/assets/"
     data-template="horizontal-menu-template">
 <head>
     <meta charset="utf-8"/>
@@ -13,12 +13,12 @@
         name="viewport"
         content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
 
-    <title>Login Basic - Pages | Materialize - Material Design HTML Admin Template</title>
+    <title>Reset Password</title>
 
     <meta name="description" content=""/>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="storage/assets/img/favicon/favicon.ico"/>
+    <link rel="icon" type="image/x-icon" href="https://binaniair.com/storage/assets/dist/img/binaniair-logo.png"/>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -66,7 +66,7 @@
     <div class="authentication-wrapper authentication-basic container-p-y">
         <div class="authentication-inner py-4">
 
-            <div class="col-md-8">
+            <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">{{ __('Reset Password') }}</div>
 
@@ -84,7 +84,7 @@
                                 <label for="email"
                                        class="col-md-4 col-form-label text-md-end">{{ __('Email Address') }}</label>
 
-                                <div class="col-md-6">
+                                <div class="col-md-8">
                                     <input id="email" type="email"
                                            class="form-control @error('email') is-invalid @enderror" name="email"
                                            value="{{ old('email') }}" required autocomplete="email" autofocus>
@@ -98,7 +98,7 @@
                             </div>
 
                             <div class="row mb-0">
-                                <div class="col-md-6 offset-md-4">
+                                <div class="col-md-12 offset-md-4">
                                     <button type="submit" class="btn btn-primary">
                                         {{ __('Send Password Reset Link') }}
                                     </button>
