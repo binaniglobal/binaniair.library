@@ -60,8 +60,8 @@
                                         <div class="dropdown-menu">
                                             {{--                                            {{dd($user->getRoleNames()->first())}}--}}
                                             @can(['can edit'])
-                                                @if($user->getRoleNames()->first() == 'admin' || $user->getRoleNames()->first() == 'super-admin')
-                                                    @if(\Illuminate\Support\Facades\Auth::user()->getRoleNames()->first() == 'admin' || \Illuminate\Support\Facades\Auth::user()->getRoleNames()->first() == 'super-admin' )
+                                                @if($user->getRoleNames()->first() === 'admin' || $user->getRoleNames()->first() === 'super-admin')
+                                                    @if(\Illuminate\Support\Facades\Auth::user()->getRoleNames()->first() === 'admin' || \Illuminate\Support\Facades\Auth::user()->getRoleNames()->first() === 'super-admin' )
                                                         <a class="dropdown-item"
                                                            href="{{ route('users.edit', [$user->uid, \Illuminate\Support\Str::uuid()]) }}">
                                                             <i class="mdi mdi-pencil-outline me-1"></i> Edit</a>
@@ -74,8 +74,8 @@
 
                                             @endcan
                                             @can(['can reset user password'])
-                                                @if($user->getRoleNames()->first() == 'admin' || $user->getRoleNames()->first() == 'super-admin')
-                                                    @if(\Illuminate\Support\Facades\Auth::user()->getRoleNames()->first() == 'admin' || \Illuminate\Support\Facades\Auth::user()->getRoleNames()->first() == 'super-admin' )
+                                                @if($user->getRoleNames()->first() === 'admin' || $user->getRoleNames()->first() === 'super-admin')
+                                                    @if(\Illuminate\Support\Facades\Auth::user()->getRoleNames()->first() === 'admin' || \Illuminate\Support\Facades\Auth::user()->getRoleNames()->first() === 'super-admin' )
                                                         <a class="dropdown-item"
                                                            href="#" onclick="return false;">
                                                             <i class="mdi mdi-circle-edit-outline me-1"></i> Reset

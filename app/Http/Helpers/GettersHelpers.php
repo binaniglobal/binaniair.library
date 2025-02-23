@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 function downloadSubManuals($fileName)
@@ -17,5 +18,9 @@ function downloadSubManualsContent($fileName)
         return Storage::disk('privateSubManualContent')->download($fileName);
     }
     return response()->json(['error' => 'File not found'], 404);
+}
+
+function getUser(){
+    return Auth::user();
 }
 

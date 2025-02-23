@@ -43,6 +43,11 @@ Route::middleware(['auth','role:super-admin|admin|librarian|user'])->group(funct
 
     //Start Manuals
     Route::get('/manuals', [ManualsController::class, 'index'])->name('manual.index');
+
+    Route::get('/manuals2', function (){
+        return 'Hello World';
+    })->name('manual.index2');
+
     Route::get('/manual/add', [ManualsController::class, 'show'])->name('manual.add');
     Route::post('/manual/create', [ManualsController::class, 'store'])->name('manual.create');
     Route::post('/manual/destroy', [ManualsController::class, 'destroy'])->name('manual.destroy');

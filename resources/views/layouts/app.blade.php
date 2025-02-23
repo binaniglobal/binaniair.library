@@ -68,7 +68,7 @@
 <script src="{{ asset('storage/assets/vendor/js/dropdown-hover.js') }}"></script>
 <script src="{{ asset('storage/assets/vendor/js/mega-dropdown.js') }}"></script>
 @php
-    $user = Auth::user();
+    $user = getUser();
 @endphp
 <!-- Layout wrapper -->
 <div class="layout-wrapper layout-navbar-full layout-horizontal layout-without-menu">
@@ -81,7 +81,7 @@
                         <a href="{{ route('home') }}" class="app-brand-link gap-2">
                             <span class="app-brand-logo demo">
                               <span style="color: var(--bs-primary)">
-                                  <img width="50" height="50" src="{{ asset('storage/assets/img/logo.png') }}">
+                                  <img width="50" height="50" src="{{ asset('storage/assets/img/logo.png') }}" alt="">
                               </span>
                             </span>
                             <span class="app-brand-text demo menu-text fw-bold">Library</span>

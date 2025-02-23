@@ -86,11 +86,6 @@ class UserController extends Controller
         return redirect(route('users.index'))->with('success', 'User Created Successfully. Please inform the user to check his/her mail for the login details. Password is: ' . $password . '.');
     }
 
-    public function validator()
-    {
-
-    }
-
     /**
      * Store a newly created resource in storage.
      */
