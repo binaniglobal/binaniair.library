@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ManualItemContent;
 use App\Models\ManualsItem;
 use App\Models\Role;
+use http\Env;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -30,7 +31,7 @@ class ManualItemContentController extends Controller
             'manual_name' => 'string',
             'type' => 'string',
             'files' => 'array|max:10', // Limit to 5 uploads
-            'files.*' => 'file|mimes:pdf|max:40960', // Validation rules for each file
+            'files.*' => 'file|mimes:pdf|max:'.\env('FILE_SIZE'), // Validation rules for each file
         ]);
 
             foreach ($request->file('file') as $file) {

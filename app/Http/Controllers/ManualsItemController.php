@@ -31,7 +31,7 @@ class ManualsItemController extends Controller
             'manual_name' => 'string',
             'type' => 'string',
             'files' => 'array|max:10', // Limit to 5 uploads
-            'files.*' => 'file|mimes:pdf|max:40960', // Validation rules for each file
+            'files.*' => 'file|mimes:pdf|max:'.\env('FILE_SIZE'), // Validation rules for each file
         ]);
         if (!empty($validate['type']) && $validate['type'] != 'Folder') {
             foreach ($request->file('files') as $key => $file) {
