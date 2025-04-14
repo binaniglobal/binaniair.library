@@ -20,7 +20,7 @@ class ManualItemContentController extends Controller
      */
     public function index($id)
     {
-        return view('manuals.items.contents.index', ['Id' => $id, 'Manual' => ManualsItem::where('miid', $id)->first(), 'Items' => ManualItemContent::where('manual_uid', $id)->get()]);
+        return view('manuals.items.contents.index', ['Id' => $id, 'Manual' => ManualsItem::where('miid', $id)->orderBy('name', 'asc')->first(), 'Items' => ManualItemContent::where('manual_uid', $id)->orderBy('name', 'asc')->get()]);
     }
 
     /**
@@ -62,7 +62,6 @@ class ManualItemContentController extends Controller
                 ]);
             }
         }
-
     }
 
     private function giveAllPermissions($permission)

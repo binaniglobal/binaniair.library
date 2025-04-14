@@ -19,7 +19,7 @@ class ManualsItemController extends Controller
      */
     public function index($id)
     {
-        return view('manuals.items.index', ['Id' => $id, 'Manual' => Manuals::where('mid', $id)->first(), 'Items' => ManualsItem::where('manual_uid', $id)->get()]);
+        return view('manuals.items.index', ['Id' => $id, 'Manual' => Manuals::where('mid', $id)->orderBy('name', 'asc')->first(), 'Items' => ManualsItem::where('manual_uid', $id)->orderBy('name', 'asc')->get()]);
     }
 
     /**
