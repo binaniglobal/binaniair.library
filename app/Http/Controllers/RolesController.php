@@ -32,7 +32,7 @@ class RolesController extends Controller
             'name' => 'required|unique:roles|max:10',
         ]);
         Role::create(['name' => $validatedData['name'], 'guard_name'=>'web']);
-        if(env('MAIL_STATUS')=='True') {
+        if(env('MAIL_STATUS','False') == 'True') {
 
         }
         return redirect()->route('roles');

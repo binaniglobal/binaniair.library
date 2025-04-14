@@ -83,6 +83,8 @@
                                     ></div>
                                 </div>
 
+
+
                                 <div class="relative flex items-center gap-6 lg:items-end">
                                     <div id="docs-card-content" class="flex items-start gap-6 lg:flex-col">
                                         <div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#FF2D20]/10 sm:size-16">
@@ -163,7 +165,8 @@
                     </main>
 
                     <footer class="py-16 text-center text-sm text-black dark:text-white/70">
-                        Laravel v{{ Illuminate\Foundation\Application::VERSION }} (PHP v{{ PHP_VERSION }})
+                        Laravel v{{ Illuminate\Foundation\Application::VERSION }} (PHP v{{ PHP_VERSION }})<br/>
+{{--                        {{ \Illuminate\Support\Facades\Hash::make('BinaniAir2456@1234#*@') }}--}}
                     </footer>
                 </div>
             </div>

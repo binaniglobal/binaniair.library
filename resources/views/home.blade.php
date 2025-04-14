@@ -16,7 +16,7 @@
         @endphp
             <!-- Card Border Shadow -->
         <div class="row">
-            @if($user->hasRole(['SuperAdmin','admin']))
+            @if($user->hasRole(['super-admin','SuperAdmin','admin']))
                 <div class="col-sm-6 col-lg-3 mb-4">
                     <div class="card card-border-shadow-primary h-80">
                         <div class="card-body">
@@ -34,7 +34,7 @@
                 </div>
             @endif
 
-            @if($user->hasRole(['SuperAdmin']))
+            @if($user->hasRole(['super-admin','SuperAdmin']))
                 {{--            <div class="col-sm-6 col-lg-3 mb-4">--}}
                 {{--                <div class="card card-border-shadow-danger h-80">--}}
                 {{--                    <div class="card-body">--}}

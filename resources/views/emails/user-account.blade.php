@@ -184,7 +184,7 @@
                                             <td style="width:64px;">
 
                                                 <img height="auto"
-                                                     src="{{ url('https://binaniair.com/storage/dist/img/binanilogo.png') }}"
+                                                     src="{{ getGlobalImage('Normal') }}"
                                                      style="border:0;display:block;outline:none;text-decoration:none;width:100%;"
                                                      width="64"/>
 

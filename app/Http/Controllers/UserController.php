@@ -44,19 +44,20 @@ class UserController extends Controller
         $validate = $request->validate([
             'first_name' => 'required|string',
             'last_name' => 'required|string',
-            'email' => 'required|string',
-            'phone' => 'required|numeric',
+            'email' => 'required|string|unique:users,email',
+            'phone' => 'required|numeric|unique:users,phone',
             'role' => 'required|string',
             'permission' => 'required|array',
             'permission.*' => 'exists:permissions,id',
         ]);
         $password = Str::random(10);
+        $email = Str::before($request->email, '@') . '@binaniair.com';
         //Create Users
         $user = User::create([
             'uid' => uuid_create(UUID_TYPE_DEFAULT),
             'name' => $request->first_name,
             'surname' => $request->last_name,
-            'email' => Str::before($request->email, '@') . '@binaniair.com',
+            'email' => $email,
             'phone' => $request->phone,
             'password' => Hash::make($password)
         ]);
@@ -69,19 +70,19 @@ class UserController extends Controller
             return redirect()->back()->withErrors(['error' => 'Permissions have already been assigned to this user. His/Her password is' . $password]);
         }
 
-        if (env('MAIL_STATUS') == 'True') {
+        if (env('MAIL_STATUS','False') == 'True') {
             $mailData = [
                 'subject' => 'Staff Library Login Mail',
                 'body' => 'Login details for ' . $validate['first_name'] . ' ' . $validate['last_name'] . '<br/>
-            Username/Email Address: ' . $validate['email'] . '<br/>
+            Username/Email Address: ' . $email . '<br/>
             Password: ' . $password . '<br/>
             Lets start using our library system. Cheers
             ',
-                'email' => $validate['email'],
+                'email' => $email,
                 'password' => $password,
                 'name' => $validate['first_name'] . ' ' . $validate['last_name']
             ];
-            Mail::to($request->email)->send(new UserAccountMail($mailData));
+            Mail::to($email)->send(new UserAccountMail($mailData));
         }
         return redirect(route('users.index'))->with('success', 'User Created Successfully. Please inform the user to check his/her mail for the login details. Password is: ' . $password . '.');
     }
@@ -176,7 +177,7 @@ class UserController extends Controller
         $user = User::where('uid', $id)->first();
 
         //To substitute if the parent boot delete function in the User Model does not work again.
-        //To remove the roles and permission of the user to be deleted.
+            //To remove the roles and permission of the user to be deleted.
 //        $user->syncRoles([]);
 //        $user->syncPermissions([]);
 //

@@ -19,7 +19,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ asset('storage/assets/img/favicon/favicon.png') }}"/>
+    <link rel="icon" type="image/x-icon" href="{{ getGlobalImage('Favicon') }}"/>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -81,7 +81,7 @@
                         <a href="{{ route('home') }}" class="app-brand-link gap-2">
                             <span class="app-brand-logo demo">
                               <span style="color: var(--bs-primary)">
-                                  <img width="50" height="50" src="{{ asset('storage/assets/img/logo.png') }}" alt="">
+                                  <img width="50" height="50" src="{{ getGlobalImage('Normal') }}" alt="">
                               </span>
                             </span>
                             <span class="app-brand-text demo menu-text fw-bold">Library</span>
@@ -94,7 +94,7 @@
                         <a href="{{ route('manual.index') }}" class="app-brand-link gap-2">
                             <span class="app-brand-logo demo">
                               <span style="color: var(--bs-primary)">
-                                  <img width="50" height="50" src="{{ asset('storage/assets/img/logo.png') }}">
+                                  <img width="50" height="50" src="{{ getGlobalImage('Normal') }}">
                               </span>
                             </span>
                             <span class="app-brand-text demo menu-text fw-bold">Library</span>

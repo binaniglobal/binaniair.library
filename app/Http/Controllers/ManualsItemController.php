@@ -31,11 +31,10 @@ class ManualsItemController extends Controller
             'manual_name' => 'string',
             'type' => 'string',
             'files' => 'array|max:10', // Limit to 5 uploads
-            'files.*' => 'file|mimes:pdf|max:'.\env('FILE_SIZE'), // Validation rules for each file
+            'files.*' => 'file|mimes:pdf|max:' . \env('FILE_SIZE'), // Validation rules for each file
         ]);
         if (!empty($validate['type']) && $validate['type'] != 'Folder') {
             foreach ($request->file('files') as $key => $file) {
-
                 // Check if file is valid
                 if (!$file->isValid()) {
                     return response()->json(['error' => 'Uploaded file is not valid'], 400);
@@ -43,14 +42,21 @@ class ManualsItemController extends Controller
                 //Please make sure there is no . It should only exist when there is a format after it.
                 $fileName = $file->getClientOriginalName();
                 $fileNameUnique = Str::random(4) . '_' . $fileName;
-                $manualsItem->miid = uuid_create(UUID_TYPE_DEFAULT);
-                $manualsItem->manual_uid = $request->id;
-                $manualsItem->name = Str::beforeLast($fileName, '.pdf');
                 $path = Storage::disk('privateSubManual')->putFileAs('', $file, $fileNameUnique);
-                $manualsItem->link = $path;
-                $manualsItem->file_size = $file->getSize();;
-                $manualsItem->file_type = $file->getClientMimeType();
-                $manualsItem->save();
+
+                $manuals = $manualsItem::create([
+                    'miid' => uuid_create(UUID_TYPE_DEFAULT),
+                    'manual_uid' => $request->id,
+                    'name' => Str::beforeLast($fileName, '.pdf'),
+                    'link' => $path,
+                    'file_size' => $file->getSize(),
+                    'file_type' => $file->getClientMimeType(),
+                ]);
+                $getParentManual = $this->getManualById($request->id);
+                if ($manuals) {
+                    $permissionName = "access-manual-{$getParentManual->name}.{$request->manual_name}";
+                    Permission::Create(['name' => $permissionName]);
+                }
 
                 return redirect(route('manual.items.index', $request->id))->with(['success', 'Files uploaded successfully!']);
             }
@@ -65,14 +71,14 @@ class ManualsItemController extends Controller
             ]);
             $getParentManual = $this->getManualById($request->id);
             if ($manual) {
-                    $permissionName = "access-manual-{$getParentManual->name}.{$request->manual_name}";
-                    Permission::Create(['name' => $permissionName]);
-                    $users = User::role(['SuperAdmin', 'Admin', 'Librarian'])->get();
+                $permissionName = "access-manual-{$getParentManual->name}.{$request->manual_name}";
+                Permission::Create(['name' => $permissionName]);
+                $users = User::role(['SuperAdmin', 'Admin', 'Librarian'])->get();
 
-                    foreach ($users as $user) {
-                        // Assign the permission to each user
-                        $user->givePermissionTo($permissionName);
-                    }
+                foreach ($users as $user) {
+                    // Assign the permission to each user
+                    $user->givePermissionTo($permissionName);
+                }
             }
             return redirect(route('manual.items.index', $request->id))->with('success', 'Folder Created');
         }

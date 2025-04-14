@@ -122,6 +122,9 @@ class ManualsController extends Controller
         $permissionNameManualItem = "access-manual-{$folderManualContent->name}";
         $this->removePermissionFromAll($permissionNameManual);
         $this->removePermissionFromAll($permissionNameManualItem);
+        if (env('MAIL_STATUS','False') == 'True') {
+
+        }
         return redirect(route('manual.items.index', $id))->with('success', 'Folder Delete');
 
     }
