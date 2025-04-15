@@ -101,29 +101,30 @@ class UserController extends Controller
     public function show()
     {
         $authUser = Auth::user();
-        if ($authUser->hasRole(['super-admin', 'SuperAdmin'])) {
-            $roles = Role::whereNot('name', 'super-admin')
+        if ($authUser->hasRole(['super-admin'])) {
+            $roles = Role::whereNotIn('name', ['super-admin'])
                 ->where(function ($query) use ($authUser) {
                     $query->whereIn('name', array_merge($authUser->getRoleNames()->toArray(), ['User', 'librarian', 'Admin', 'SuperAdmin']));
                 })
                 ->get();
-        } elseif ($authUser->hasRole(['admin'])) {
-            Role::whereNot('name', 'super-admin')
+        } elseif ($authUser->hasRole(['SuperAdmin'])) {
+            $roles = Role::whereNotIn('name', ['super-admin', 'SuperAdmin'])
                 ->where(function ($query) use ($authUser) {
-                    $query->whereIn('name', array_merge($authUser->getRoleNames()->toArray(), ['Admin', 'User', 'librarian']));
+                    $query->whereIn('name', array_merge($authUser->getRoleNames()->toArray(), ['User', 'Admin', 'librarian']));
                 })
                 ->get();
-        } elseif ($authUser->hasRole(['librarian'])) {
-            Role::whereNot('name', 'super-admin')
+        } elseif ($authUser->hasRole(['admin'])) {
+            $roles = Role::whereNotIn('name', ['super-admin', 'SuperAdmin', 'admin'])
                 ->where(function ($query) use ($authUser) {
                     $query->whereIn('name', array_merge($authUser->getRoleNames()->toArray(), ['User', 'librarian']));
                 })
                 ->get();
-        } else {
-            Role::whereNot('name', 'super-admin')
+        } elseif ($authUser->hasRole(['librarian'])) {
+            $roles = Role::whereNotIn('name', ['super-admin', 'SuperAdmin', 'admin', 'librarian'])
                 ->where(function ($query) use ($authUser) {
-                    $query->Role::whereIn('name', $authUser->getRoleNames()->toArray())->orWhere('name', 'User');
-                })->get();
+                    $query->whereIn('name', array_merge($authUser->getRoleNames()->toArray(), ['User']));
+                })
+                ->get();
         }
 
         $permissions = Permission::where('name', 'like', '%access%')
@@ -143,7 +144,17 @@ class UserController extends Controller
         $AssignedPermissions = $Edit->permissions->pluck('id')->toArray();
         $Permissions = Permission::where('name', 'like', '%access%')->orWhereIn('name', $authUser->getPermissionNames())->get();
         $AssignedRoles = $Edit->roles->pluck('id')->toArray();
-        $Roles = Role::whereNot('name', 'super-admin')->orderBy('name')->get();
+
+        if (Auth::user()->hasRole(['super-admin', 'SuperAdmin'])) {
+            $Roles = Role::whereNot('name', 'super-admin')->orderBy('name')->get();
+        }
+        if (Auth::user()->hasRole(['admin'])) {
+            $Roles = Role::whereNotIn('name', ['admin', 'super-admin', 'SuperAdmin'])->orderBy('name')->get();
+        }
+
+        if (Auth::user()->hasRole(['librarian'])) {
+            $Roles = Role::whereNotIn('name', ['admin', 'super-admin', 'SuperAdmin', 'librarian'])->orderBy('name')->get();
+        }
 
         return view('users.edit', compact('AssignedPermissions', 'Permissions', 'Edit', 'AssignedRoles', 'Roles'));
     }

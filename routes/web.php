@@ -37,9 +37,6 @@ Route::get('/test-private-disk', function () {
 
 //Route::middleware(['auth','role:super-admin|admin|librarian|user', 'verified'])->group(function () {
 Route::middleware(['auth','role:super-admin|admin|librarian|user'])->group(function () {
-
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
-
     Route::get('/manual/sub-manuals/file/{filename}', [HomeController::class, 'downloadSubManuals'])->name('download.submanuals');
     Route::get('/manual/sub-manuals/content/file/{filename}', [HomeController::class, 'downloadSubManualsContent'])->name('download.contents');
 
@@ -98,6 +95,7 @@ Route::middleware(['auth', 'role:super-admin'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:super-admin|admin|librarian'])->group(function () {
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
     //Add Users
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/usersList', [UserController::class, 'listIndex'])->name('users.index.list');
