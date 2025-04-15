@@ -70,7 +70,7 @@ class UserController extends Controller
             return redirect()->back()->withErrors(['error' => 'Permissions have already been assigned to this user. His/Her password is' . $password]);
         }
 
-        if (env('MAIL_STATUS','False') == 'True') {
+        if (env('MAIL_STATUS', 'False') == 'True') {
             $mailData = [
                 'subject' => 'Staff Library Login Mail',
                 'body' => 'Login details for ' . $validate['first_name'] . ' ' . $validate['last_name'] . '<br/>
@@ -123,7 +123,7 @@ class UserController extends Controller
             Role::whereNot('name', 'super-admin')
                 ->where(function ($query) use ($authUser) {
                     $query->Role::whereIn('name', $authUser->getRoleNames()->toArray())->orWhere('name', 'User');
-            })->get();
+                })->get();
         }
 
         $permissions = Permission::where('name', 'like', '%access%')
@@ -143,7 +143,7 @@ class UserController extends Controller
         $AssignedPermissions = $Edit->permissions->pluck('id')->toArray();
         $Permissions = Permission::where('name', 'like', '%access%')->orWhereIn('name', $authUser->getPermissionNames())->get();
         $AssignedRoles = $Edit->roles->pluck('id')->toArray();
-        $Roles = Role::whereNot('name','super-admin')->orderBy('name')->get();
+        $Roles = Role::whereNot('name', 'super-admin')->orderBy('name')->get();
 
         return view('users.edit', compact('AssignedPermissions', 'Permissions', 'Edit', 'AssignedRoles', 'Roles'));
     }
@@ -159,13 +159,15 @@ class UserController extends Controller
         $request->validate([
             'email' => 'required|string',
             'phone' => 'required|numeric',
+            'role' => 'nullable|numeric',
             'permissions' => 'nullable|array',
             'permissions.*' => 'exists:permissions,id',
         ]);
 
         $permissions = Permission::whereIn('id', $request->permission)->pluck('name')->toArray();
-
+        $role = Role::where('id', $request->role)->pluck('name')->toArray();
         // Update roles and permissions
+        $user->syncRoles($role);
         $user->syncPermissions($request->permissions ?? [$permissions]);
         return redirect()->route('users.index')->with('success', 'User information updated successfully.');
     }
@@ -179,7 +181,7 @@ class UserController extends Controller
         $user = User::where('uid', $id)->first();
 
         //To substitute if the parent boot delete function in the User Model does not work again.
-            //To remove the roles and permission of the user to be deleted.
+        //To remove the roles and permission of the user to be deleted.
 //        $user->syncRoles([]);
 //        $user->syncPermissions([]);
 //

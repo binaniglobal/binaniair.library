@@ -80,7 +80,6 @@
                                             <option value="{{$role->id}}" {{ in_array($role->id, $AssignedRoles) ? 'selected': '' }}>
                                              {{ $role->name }}
                                             </option>
-
                                         @endforeach
                                     </select>
                                     <label for="role">Role</label>
