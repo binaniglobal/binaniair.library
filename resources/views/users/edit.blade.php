@@ -78,7 +78,7 @@
                                     <select id="role" name="role" class="selectpicker w-100" data-style="btn-default">
                                         @foreach($Roles as $role)
                                             <option value="{{$role->id}}" {{ in_array($role->id, $AssignedRoles) ? 'selected': '' }}>
-                                             {{ $role->name }}
+                                             {{ strtoupper($role->name) }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -103,7 +103,7 @@
                                         @foreach($Permissions as $permission)
                                             <option value="{{ $permission->id }}"
                                                 {{ in_array($permission->id, $AssignedPermissions) ? 'selected' : '' }}>
-                                            {{ $permission->name }}
+                                            {{ strtoupper($permission->name) }}
                                         @endforeach
                                     </select>
                                     <label for="permission">Select / Deselect All</label>

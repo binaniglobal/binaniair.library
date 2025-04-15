@@ -73,11 +73,10 @@
                                         @foreach($Roles as $role)
                                             @if($role->name == 'user')
                                                 <option selected
-                                                        value="{{ $role->name }}">{{ ucfirst($role->name) }}</option>
+                                                        value="{{ $role->name }}">{{ strtoupper($role->name) }}</option>
                                             @else
-                                                <option value="{{ $role->name }}">{{ ucfirst($role->name) }}</option>
+                                                <option value="{{ $role->name }}">{{ strtoupper($role->name) }}</option>
                                             @endif
-
                                         @endforeach
                                     </select>
                                     <label for="role">Role</label>
@@ -98,7 +97,7 @@
                                         data-actions-box="true">
                                         @foreach($Permissions as $permission)
                                             <option
-                                                value="{{ $permission->id }}">{{ ucfirst($permission->name) }}</option>
+                                                value="{{ $permission->id }}">{{ strtoupper($permission->name) }}</option>
                                         @endforeach
                                     </select>
                                     <label for="selectpickerSelectDeselect">Select / Deselect All</label>

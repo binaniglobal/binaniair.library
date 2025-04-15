@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
 
         $librarianRole = Role::create(['name' => 'librarian']);
         $librarianRole->givePermissionTo(['can add', 'can view', 'can update', 'can destroy']);
+
         $useRole = Role::create(['name' => 'user']);
         $useRole->givePermissionTo(['can view']);
 

@@ -80,7 +80,6 @@ Route::middleware(['auth', 'role:super-admin|admin'])->group(function () {
     Route::post('/permissions/update', [PermissionController::class, 'update'])->name('permissions.update');
     Route::post('/permissions/destroy', [PermissionController::class, 'destroy'])->name('permissions.destroy');
     //End Add Permissions
-
 });
 
 Route::middleware(['auth', 'role:super-admin'])->group(function () {

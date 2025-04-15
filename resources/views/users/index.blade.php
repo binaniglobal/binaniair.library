@@ -123,7 +123,7 @@
                 $("#dt-responsive").DataTable({
                     "responsive": true, "lengthChange": false, "autoWidth": false,
                     buttons: [
-                        'pageLength', 'pdf',
+                        'pageLength',
                             @can(['can add'])
                         {
                             html: '<a class="btn btn-primary" href="{{ route('users.add') }}"><span class="fa fa-plus-circle" aria-hidden="true"></span>&nbsp; <i class="fa fa-user"></i></a>',
