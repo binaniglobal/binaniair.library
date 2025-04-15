@@ -37,8 +37,9 @@ Route::get('/test-private-disk', function () {
 });
 
 
-Route::middleware(['auth','role:super-admin|admin|librarian|user', 'verified'])->group(function () {
-    
+//Route::middleware(['auth','role:super-admin|admin|librarian|user', 'verified'])->group(function () {
+Route::middleware(['auth','role:super-admin|admin|librarian|user'])->group(function () {
+
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
     Route::get('/manual/sub-manuals/file/{filename}', [HomeController::class, 'downloadSubManuals'])->name('download.submanuals');
