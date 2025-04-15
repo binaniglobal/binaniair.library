@@ -142,8 +142,10 @@ class UserController extends Controller
         $Edit = User::where('uid', $id)->first();
         $AssignedPermissions = $Edit->permissions->pluck('id')->toArray();
         $Permissions = Permission::where('name', 'like', '%access%')->orWhereIn('name', $authUser->getPermissionNames())->get();
+        $AssignedRoles = $Edit->roles->pluck('id')->toArray();
+        $Roles = Role::whereNot('name','super-admin')->orderBy('name')->get();
 
-        return view('users.edit', compact('AssignedPermissions', 'Permissions', 'Edit'));
+        return view('users.edit', compact('AssignedPermissions', 'Permissions', 'Edit', 'AssignedRoles', 'Roles'));
     }
 
     /**

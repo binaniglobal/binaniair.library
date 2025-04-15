@@ -72,6 +72,24 @@
                         <h6>2. Permissions
                         </h6>
                         <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label" for="role">Role</label>
+                            <div class="col-sm-9">
+                                <div class="form-floating form-floating-outline">
+                                    <select id="role" name="role" class="selectpicker w-100" data-style="btn-default">
+                                        @foreach($Roles as $role)
+                                            <option value="{{$role->id}}" {{ in_array($role->id, $AssignedRoles) ? 'selected': '' }}>
+                                             {{ $role->name }}
+                                            </option>
+
+                                        @endforeach
+                                    </select>
+                                    <label for="role">Role</label>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="row mb-3">
                             <label class="col-sm-3 col-form-label" for="permission">Permissions</label>
                             <!-- Select / Deselect All -->
                             <div class="col-sm-9">
