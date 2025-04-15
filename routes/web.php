@@ -67,11 +67,9 @@ Route::middleware(['auth','role:super-admin|admin|librarian|user'])->group(funct
     Route::post('/manual/sub-manuals/content/create', [ManualItemContentController::class, 'store'])->name('manual.items.content.add');
     Route::get('/manual/sub-manuals/content/{id}/destroy/{ids}', [ManualItemContentController::class, 'destroy'])->name('manual.items.content.destroy');
     //End Manual Items Contents
-
 });
 
 Route::middleware(['auth', 'role:super-admin|admin'])->group(function () {
-
     //Add Permissions
     Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions');
     Route::get('/permissions/create', [PermissionController::class, 'create'])->name('permissions.create');
