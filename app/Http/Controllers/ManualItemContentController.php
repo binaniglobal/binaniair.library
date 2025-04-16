@@ -31,11 +31,16 @@ class ManualItemContentController extends Controller
         $validate = $request->validate([
             'manual_name' => 'string',
             'type' => 'string',
-            'file' => 'array|max:10', // Limit to 5 uploads
+            'file' => 'array|max:5', // Limit to 5 uploads
             'file.*' => 'file|mimes:pdf|max:' . \env('FILE_SIZE'), // Validation rules for each file
         ]);
+        $uploadedFiles = $request->file('file');
 
-        foreach ($request->file('file') as $file) {
+        if (!$uploadedFiles || !is_array($uploadedFiles)) {
+            return back()->with('error', 'No files were uploaded.');
+        }
+
+        foreach ($uploadedFiles as $file) {
             $fileName = $file->getClientOriginalName();
             $fileNameUnique = Str::random(4) . '_' . $fileName;
             $path = Storage::disk('privateSubManualContent')->putFileAs('', $file, $fileNameUnique);
