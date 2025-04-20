@@ -3,18 +3,27 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, HasUuids;
+
+    protected $keyType = 'string';
+    public $incrementing = false;
+    protected $primaryKey = 'uuid';
 
     protected static function boot(): void
     {
         parent::boot();
+//        static::creating(function ($user) {
+//            $user->uuid = Str::uuid();
+//        });
 
         static::deleting(function ($user) {
             // Remove roles
@@ -30,7 +39,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<int, string>
      */
     protected $fillable = [
-        'uid',
+        'uuid',
         'name',
         'surname',
         'email',

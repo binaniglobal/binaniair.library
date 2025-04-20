@@ -8,9 +8,13 @@
             <!-- Form Separator -->
             <div class="col-xxl">
                 <div class="card mb-4">
-                    @if(session('success'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('success') }}
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
                         </div>
                     @endif
                     <h5 class="card-header">Add Manuals</h5>

@@ -22,7 +22,7 @@
                         </div>
                     @endif
                     <h5 class="card-header">Edit Users</h5>
-                    <form class="card-body overflow-hidden" action="{{ route('users.update', $Edit['uid']) }}"
+                    <form class="card-body overflow-hidden" action="{{ route('users.update', $Edit['uuid']) }}"
                           method="POST">
                         @csrf
                         @method('PUT')
@@ -68,8 +68,10 @@
                                        placeholder="+23481000000"/>
                             </div>
                         </div>
-                        <hr class="my-4 mx-n4"/>
-                        <h6>2. Permissions
+
+                        <hr class="my-4 mx-n4 m-auto"/>
+
+                        <h6>2. Role & Permissions
                         </h6>
                         <div class="row mb-3">
                             <label class="col-sm-3 col-form-label" for="role">Role</label>

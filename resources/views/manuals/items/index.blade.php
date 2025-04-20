@@ -12,7 +12,7 @@
         <link rel="stylesheet" href="{{ url('storage/assets/vendor/libs/flatpickr/flatpickr.css') }}"/>
     @endpush
     <div class="container-xxl flex-grow-1 container-p-y">
-        <h4 class="py-3 mb-4"><span class="text-muted fw-light">Home / <a href="#" onclick="history.back()">Manuals</a></span>
+        <h4 class="py-3 mb-4"><span class="text-muted fw-light">Home / <a href="javascript:void();" onclick="history.back()">Manuals</a></span>
             / {{ ucfirst($Manual->name) }}</h4>
         @php
             $user = Auth::user();
@@ -33,19 +33,19 @@
                         <th>{{ $Manual->name }}</th>
                         <th>Type</th>
                         <th>No of Files / Size</th>
-                        @can('can destroy')
+                        @can('destroy-manual')
                             <th>Action</th>
                         @endcan
                     </tr>
                     </thead>
                     <tbody class="table-border-bottom-0">
-                    @foreach($Items as $items)
-                        @php
-                            $count = \App\Models\ManualItemContent::where('manual_uid', $items->miid)->count();
-                            $parentManual = Manuals::where('mid', $items->manual_uid)->first();
-//                                $secureDownload = \Illuminate\Support\Facades\Storage::download(asset(str_replace('public/', 'storage/',$items->link)));
-                        @endphp
-                        @can('access-manual-'.$parentManual->name)
+                    @can('view-manual')
+                        @foreach($Items as $items)
+                            @php
+                                $count = countManualItemsById($items->miid);
+                                $parentManual = Manuals::where('mid', $items->manual_uid)->first();
+                            @endphp
+                            @can('access-manual-'.$parentManual->name)
                                 <tr>
                                     @if($items->file_type == 'Folder')
                                         <td>
@@ -65,7 +65,7 @@
                                         <td>{{ $size->formatBytes($items->file_size) }}</td>
                                     @endif
 
-                                    @can('can destroy')
+                                    @can('destroy-manual')
                                         <td>
                                             <div class="dropdown">
                                                 <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -81,8 +81,9 @@
                                         </td>
                                     @endcan
                                 </tr>
-                        @endcan
-                    @endforeach
+                            @endcan
+                        @endforeach
+                    @endcan
                     </tbody>
                 </table>
             </div>
@@ -94,8 +95,9 @@
             $("#dt-responsive").DataTable({
                 "responsive": true, "lengthChange": false, "autoWidth": false,
                 buttons: [
-                    'pageLength',
-                        @can('can add')
+                    'pageLength'
+                    @can('create-manual')
+                    ,
                     {
                         html: '<a class="btn btn-primary" href="{{ route('manual.items.show', $Id) }}"><span class="fa fa-plus-circle" aria-hidden="true"></span> ' +
                             ' <i class="menu-icon tf-icons mdi mdi-book-account"></i>' +

@@ -54,7 +54,6 @@ class UserController extends Controller
         $email = Str::before($request->email, '@') . '@binaniair.com';
         //Create Users
         $user = User::create([
-            'uid' => uuid_create(UUID_TYPE_DEFAULT),
             'name' => $request->first_name,
             'surname' => $request->last_name,
             'email' => $email,
@@ -119,12 +118,6 @@ class UserController extends Controller
                     $query->whereIn('name', array_merge($authUser->getRoleNames()->toArray(), ['User', 'librarian']));
                 })
                 ->get();
-        } elseif ($authUser->hasRole(['librarian'])) {
-            $roles = Role::whereNotIn('name', ['super-admin', 'SuperAdmin', 'admin', 'librarian'])
-                ->where(function ($query) use ($authUser) {
-                    $query->whereIn('name', array_merge($authUser->getRoleNames()->toArray(), ['User']));
-                })
-                ->get();
         }
 
         $permissions = Permission::where('name', 'like', '%access%')
@@ -140,20 +133,52 @@ class UserController extends Controller
     public function edit(string $id)
     {
         $authUser = Auth::user();
-        $Edit = User::where('uid', $id)->first();
+        $Edit = User::where('uuid', $id)->first();
         $AssignedPermissions = $Edit->permissions->pluck('id')->toArray();
-        $Permissions = Permission::where('name', 'like', '%access%')->orWhereIn('name', $authUser->getPermissionNames())->get();
-        $AssignedRoles = $Edit->roles->pluck('id')->toArray();
+        if (Auth::user()->hasRole(['user'])) {
+            $data = [
+                'create-manual',
+                'edit-manual',
+                'destroy-manual',
+                'create-user',
+                'view-user',
+                'edit-user',
+                'destroy-user',
+                'view-report',
+                'generate-report',
+                'reset-password',
+                'issue-manuals',
+                'view-home'
+            ];
+            $Permissions = Permission::whereNotIn('name', [$data])->orWhereIn('name', $authUser->getPermissionNames())->get();
+        }
+        if (Auth::user()->hasRole(['admin'])) {
+            $data = [
+                'destroy-manual',
+                'destroy-user',
+                'generate-report',
+                'reset-password',
+            ];
+            $Permissions = Permission::whereNotIn('name', [$data])->orWhereIn('name', $authUser->getPermissionNames())->get();
+        }
 
         if (Auth::user()->hasRole(['super-admin', 'SuperAdmin'])) {
+            $Permissions = Permission::whereNotIn('name', ['generate-report', 'view-report'])->get();
+        }
+        if (Auth::user()->hasRole(['super-admin'])) {
+            $Permissions = Permission::all();
+        }
+
+        $AssignedRoles = $Edit->roles->pluck('id')->toArray();
+
+        if (Auth::user()->hasRole(['super-admin'])) {
+            $Roles = Role::whereNot('name', 'super-admin')->orderBy('name')->get();
+        }
+        if (Auth::user()->hasRole(['SuperAdmin'])) {
             $Roles = Role::whereNot('name', 'super-admin')->orderBy('name')->get();
         }
         if (Auth::user()->hasRole(['admin'])) {
             $Roles = Role::whereNotIn('name', ['admin', 'super-admin', 'SuperAdmin'])->orderBy('name')->get();
-        }
-
-        if (Auth::user()->hasRole(['librarian'])) {
-            $Roles = Role::whereNotIn('name', ['admin', 'super-admin', 'SuperAdmin', 'librarian'])->orderBy('name')->get();
         }
 
         return view('users.edit', compact('AssignedPermissions', 'Permissions', 'Edit', 'AssignedRoles', 'Roles'));
@@ -164,7 +189,7 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $user = User::where('uid', $id)->first();
+        $user = User::where('uuid', $id)->first();
 
         // Validate the request
         $request->validate([

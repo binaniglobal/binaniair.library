@@ -11,12 +11,11 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('manuals', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('mid')->unique()->index();
+            $table->uuid('mid')->primary()->index(); // Set 'mid' as primary key and UUID
             $table->string('name')->unique();
             $table->bigInteger('no_of_items')->default(0);
             $table->tinyInteger('status')->default(0); //0=Active
-            $table->tinyInteger('type')->default(0); //0= Soft-copy, 1=Hard-copy
+            $table->tinyInteger('type')->default(0); //0= Soft-copy
             $table->timestamps();
         });
     }

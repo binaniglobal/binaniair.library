@@ -58,7 +58,7 @@ class ProfileController extends Controller
         $validate = $request->validate([
             'phone' => 'numeric|digits_between:10,15',
             'currentPassword' => 'string',
-            'newPassword' => 'string|min:8|regex:/[a-z]/|regex:/[\d\s\W]/',
+            'newPassword' => 'string|min:8|regex:/^(?=.*[a-z])(?=.*[\d\s\W]).{8,}$/',
             'confirmPassword' => 'string|min:8|same:newPassword',
         ]);
 

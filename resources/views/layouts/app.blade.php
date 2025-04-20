@@ -9,8 +9,8 @@
 <head>
     <meta charset="utf-8"/>
     <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
 
     <title>BinaniAir Library</title>
 
@@ -22,14 +22,15 @@
     <link rel="icon" type="image/x-icon" href="{{ getGlobalImage('Favicon') }}"/>
 
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com"/>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-    <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&ampdisplay=swap"
-            rel="stylesheet"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-          integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+        <link rel="preconnect" href="https://fonts.googleapis.com"/>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+        <link
+                href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&ampdisplay=swap"
+                rel="stylesheet"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+              integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+              crossorigin="anonymous" referrerpolicy="no-referrer"/>
+
     <link rel="stylesheet" href="{{ asset('storage/assets/vendor/fonts/materialdesignicons.css') }}"/>
 
     <!-- Menu waves for no-customizer fix -->
@@ -70,14 +71,14 @@
 @php
     $user = getUser();
 @endphp
-<!-- Layout wrapper -->
+    <!-- Layout wrapper -->
 <div class="layout-wrapper layout-navbar-full layout-horizontal layout-without-menu">
     <div class="layout-container">
         <!-- Navbar -->
         <nav class="layout-navbar navbar navbar-expand-xl align-items-center bg-navbar-theme" id="layout-navbar">
             <div class="container-xxl">
                 <div class="navbar-brand app-brand d-none d-xl-flex py-0 me-4">
-                    @if($user->hasRole(['SuperAdmin', 'admin']))
+                    @if($user->hasPermissionTo('view-home'))
                         <a href="{{ route('home') }}" class="app-brand-link gap-2">
                             <span class="app-brand-logo demo">
                               <span style="color: var(--bs-primary)">
@@ -111,23 +112,22 @@
                         <i class="mdi mdi-menu mdi-24px"></i>
                     </a>
                 </div>
-
                 <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
                     <ul class="navbar-nav flex-row align-items-center ms-auto">
 
                         <!-- Style Switcher -->
                         <li class="nav-item dropdown-style-switcher dropdown me-1 me-xl-0">
                             <a
-                                    class="nav-link btn btn-text-secondary rounded-pill btn-icon dropdown-toggle hide-arrow"
-                                    href="javascript:void(0);"
-                                    data-bs-toggle="dropdown">
+                                class="nav-link btn btn-text-secondary rounded-pill btn-icon dropdown-toggle hide-arrow"
+                                href="javascript:void(0);"
+                                data-bs-toggle="dropdown">
                                 <i class="mdi mdi-24px"></i>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end dropdown-styles">
                                 <li>
                                     <a class="dropdown-item" href="javascript:void(0);" data-theme="light">
                                         <span class="align-middle"><i
-                                                    class="mdi mdi-weather-sunny me-2"></i>Light</span>
+                                                class="mdi mdi-weather-sunny me-2"></i>Light</span>
                                     </a>
                                 </li>
                                 <li>
@@ -165,7 +165,7 @@
                                             </div>
                                             <div class="flex-grow-1">
                                                 <span
-                                                        class="fw-medium d-block"> {{ !empty(Auth::user()->name)?Auth::user()->name:''  }} - ({{ ucfirst(\Illuminate\Support\Facades\Auth::user()->roles->first()->name) }})</span>
+                                                    class="fw-medium d-block"> {{ !empty(Auth::user()->name)?Auth::user()->name:''  }} - ({{ ucfirst(\Illuminate\Support\Facades\Auth::user()->roles->first()->name) }})</span>
                                                 <small class="text-muted">
                                                     {{ \Illuminate\Support\Facades\Auth::user()->email }}
                                                 </small>
@@ -182,7 +182,6 @@
                                         <span class="align-middle">My Profile</span>
                                     </a>
                                 </li>
-
                                 <li>
                                     <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();" target="_blank">
@@ -203,7 +202,7 @@
 
         <!-- / Navbar -->
 
-                <!-- Layout container -->
+        <!-- Layout container -->
         <div class="layout-page">
             <!-- Content wrapper -->
             <div class="content-wrapper">
@@ -211,7 +210,7 @@
                 <aside id="layout-menu" class="layout-menu-horizontal menu-horizontal menu bg-menu-theme flex-grow-0">
                     <div class="container-xxl d-flex h-100">
                         <ul class="menu-inner">
-                            @if($user->hasRole(['super-admin','SuperAdmin', 'admin']))
+                            @can('view-home')
                                 <!-- Dashboards -->
                                 <li class="menu-item @if(request()->is('home')) {{ __('active') }} @endif">
                                     <a href="{{ route('home') }}" class="menu-link">
@@ -219,53 +218,58 @@
                                         <div data-i18n="Home">Home</div>
                                     </a>
                                 </li>
-                            @endif
-                            <li class="menu-item @if(request()->is('manuals')) {{ __('active') }} @endif @if(request()->is('manual/add')) {{ __('active') }} @endif">
-                                <a href="{{ route('manual.index') }}" class="menu-link">
-                                    <i class="menu-icon tf-icons mdi mdi-book-account"></i>
-                                    <div data-i18n="Manuals">Manuals</div>
-                                </a>
-                            </li>
-                            @if($user->hasRole(['super-admin', 'admin', 'librarian']))
-                                {{--                                <li class="menu-item @if(request()->is('issue/books')) {{ __('active') }} @endif @if(request()->is('issue/books/add')) {{ __('active') }} @endif">--}}
-                                {{--                                    <a href="{{ route('issue.books.index') }}" class="menu-link">--}}
-                                {{--                                        <i class="menu-icon tf-icons mdi mdi-book-plus"></i>--}}
-                                {{--                                        <div data-i18n="Book Issue">Book Issue</div>--}}
-                                {{--                                    </a>--}}
-                                {{--                                </li>--}}
+                            @endcan
 
+                            @can('view-manual')
+                                <li class="menu-item @if(request()->is('manuals')) {{ __('active') }} @endif @if(request()->is('manual/add')) {{ __('active') }} @endif">
+                                    <a href="{{ route('manual.index') }}" class="menu-link">
+                                        <i class="menu-icon tf-icons mdi mdi-book-account"></i>
+                                        <div data-i18n="Manuals">Manuals</div>
+                                    </a>
+                                </li>
+                            @endcan
+
+{{--                            @can('issue-manual')--}}
+{{--                                <li class="menu-item @if(request()->is('issue/books')) {{ __('active') }} @endif @if(request()->is('issue/books/add')) {{ __('active') }} @endif">--}}
+{{--                                    <a href="{{ route('issue.books.index') }}" class="menu-link">--}}
+{{--                                        <i class="menu-icon tf-icons mdi mdi-book-plus"></i>--}}
+{{--                                        <div data-i18n="Book Issue">Book Issue</div>--}}
+{{--                                    </a>--}}
+{{--                                </li>--}}
+{{--                            @endcan--}}
+
+                            @can('view-user')
                                 <li class="menu-item @if(request()->is('users')) {{ __('active') }} @endif @if(request()->is('users/add')) {{ __('active') }} @endif">
                                     <a href="{{ route('users.index') }}" class="menu-link">
                                         <i class="menu-icon tf-icons mdi mdi-account-group"></i>
                                         <div data-i18n="Users">Users</div>
                                     </a>
                                 </li>
+                            @endcan
 
-                                @if($user->hasRole(['super-admin']))
-                                    <li class="menu-item">
-                                        <a class="menu-link menu-toggle">
-                                            <i class="menu-icon tf-icons mdi mdi-apps"></i>
-                                            <div data-i18n="Settings">Settings</div>
-                                        </a>
-                                        <ul class="menu-sub">
+                            @if($user->hasRole(['super-admin']))
+                                <li class="menu-item">
+                                    <a class="menu-link menu-toggle">
+                                        <i class="menu-icon tf-icons mdi mdi-apps"></i>
+                                        <div data-i18n="Settings">Settings</div>
+                                    </a>
+                                    <ul class="menu-sub">
 
-                                            <li class="menu-item @if(request()->is('roles')) {{ __('active') }} @endif @if(request()->is('roles/create')) {{ __('active') }} @endif">
-                                                <a href="{{ route('roles') }}" class="menu-link">
-                                                    <i class="menu-icon tf-icons mdi mdi-apps"></i>
-                                                    <div data-i18n="Roles">Roles</div>
-                                                </a>
-                                            </li>
+                                        <li class="menu-item @if(request()->is('roles')) {{ __('active') }} @endif @if(request()->is('roles/create')) {{ __('active') }} @endif">
+                                            <a href="{{ route('roles') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons mdi mdi-apps"></i>
+                                                <div data-i18n="Roles">Roles</div>
+                                            </a>
+                                        </li>
 
-                                            <li class="menu-item @if(request()->is('permissions')) {{ __('active') }} @endif @if(request()->is('permissions/create')) {{ __('active') }} @endif">
-                                                <a href="{{ route('permissions') }}" class="menu-link">
-                                                    <i class="menu-icon tf-icons mdi mdi-apps"></i>
-                                                    <div data-i18n="Permissions">Permissions</div>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </li>
-
-                                @endif
+                                        <li class="menu-item @if(request()->is('permissions')) {{ __('active') }} @endif @if(request()->is('permissions/create')) {{ __('active') }} @endif">
+                                            <a href="{{ route('permissions') }}" class="menu-link">
+                                                <i class="menu-icon tf-icons mdi mdi-apps"></i>
+                                                <div data-i18n="Permissions">Permissions</div>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
                             @endif
                         </ul>
                     </div>
@@ -279,7 +283,7 @@
                 <footer class="content-footer footer bg-footer-theme">
                     <div class="container-xxl">
                         <div
-                                class="footer-container d-flex align-items-center justify-content-between py-3 flex-md-row flex-column">
+                            class="footer-container d-flex align-items-center justify-content-between py-3 flex-md-row flex-column">
                             <div class="mb-2 mb-md-0">
                                 © 2024
                                 @if(date('Y') > 2024)

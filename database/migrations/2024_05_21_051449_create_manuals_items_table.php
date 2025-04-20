@@ -12,14 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('manuals_items', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('miid')->unique()->index();
-            $table->string('manual_uid');
-            $table->string('name');
-            $table->string('link');
-            $table->string('file_type');
-            $table->string('file_size');
+            $table->uuid('miid')->primary(); // Set 'miid' as primary key and UUID
+            $table->uuid('manual_uid'); // Foreign key should also be a UUID
+            $table->string('name')->nullable();
+            $table->string('link')->nullable();
+            $table->string('file_type')->nullable();
+            $table->string('file_size')->nullable();
             $table->timestamps();
+
+            $table->foreign('manual_uid')->references('mid')->on('manuals')->onDelete('cascade');
         });
     }
 

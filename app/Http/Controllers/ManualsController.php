@@ -5,10 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\ManualItemContent;
 use App\Models\Manuals;
 use App\Models\ManualsItem;
-use App\Models\Role;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Spatie\Permission\Models\Permission;
+use App\Models\Permission as Permission;
 
 class ManualsController extends Controller
 {
@@ -17,15 +15,10 @@ class ManualsController extends Controller
      */
     public function index()
     {
-        $manuals = Manuals::all();
         return view('manuals.index', ['Manuals' => Manuals::all()]);
     }
 
-    public function noOfManuals()
-    {
-        $count = ManualsItem::all();
-        return $count->count();
-    }
+
 
     public function getManualName($id)
     {
@@ -38,32 +31,22 @@ class ManualsController extends Controller
      */
     public function store(Request $request)
     {
-        $validate = $request->validate([
-            'manual_name' => 'string',
+        $request->validate([
+            'manual_name' => 'string|unique:manuals,name',
         ]);
 
         $manual = Manuals::create([
-            'mid' => uuid_create(UUID_TYPE_DEFAULT),
             'name' => $request->manual_name
         ]);
         if ($manual) {
             $permissionName = "access-manual-{$request->manual_name}";
-            Permission::Create(['name' => $permissionName]);
-            $this->giveAllPermissions($permissionName);
-        }
-        return redirect()->back()->with('success', 'Folder Created');
-    }
-
-    private function giveAllPermissions($permission)
-    {
-        $roles = Role::whereIn('name', ['SuperAdmin', 'Admin', 'Librarian'])->get();
-
-        foreach ($roles as $role) {
-            // Append the permission to all users with the role
-            foreach ($role->users as $user) {
-                $user->givePermissionTo($permission);
+            // Create permission
+            $permission = Permission::firstOrCreate(['name' => $permissionName]);
+            if (auth()->check() && !auth()->user()->hasPermissionTo($permission)) {
+                auth()->user()->givePermissionTo($permission);
             }
         }
+        return redirect(route('manual.index'))->with('success', 'Folder Created');
     }
 
     /**
@@ -101,38 +84,9 @@ class ManualsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id, Manuals $manuals, ManualsItem $manualsItem, ManualItemContent $manualItemContent)
+    public function destroy($id)
     {
-        $folderManual = $manualsItem::where('miid', $id)->get();
-        $folderManualContent = $manualItemContent::where('miid', $id)->get();
-        foreach ($folderManual as $item) {
-            if (Storage::disk('privateSubManual')->exists($item->link)) {
-                Storage::disk('privateSubManual')->delete($item->link);
-            }
-        }
-        foreach ($folderManualContent as $item) {
-            if (Storage::disk('privateSubManualContent')->exists($item->link)) {
-                Storage::disk('privateSubManualContent')->delete($item->link);
-            }
-        }
-        $manuals::where('mid', $id)->delete();
-        $manualsItem::where('manual_uid', $id)->delete();
-        $manualItemContent::where('manual_iid', $id)->delete();
-        $permissionNameManual = "access-manual-{$folderManual->name}";
-        $permissionNameManualItem = "access-manual-{$folderManualContent->name}";
-        $this->removePermissionFromAll($permissionNameManual);
-        $this->removePermissionFromAll($permissionNameManualItem);
-        if (env('MAIL_STATUS','False') == 'True') {
-
-        }
-        return redirect(route('manual.items.index', $id))->with('success', 'Folder Delete');
-
-    }
-
-    private function removePermissionFromAll($permissionName)
-    {
-        $permission = Permission::findByName($permissionName);
-        // Remove the permission globally
-        $permission->delete();
+        deleteManualItemRecursively($id);
+        return redirect(route('manual.index', $id))->with('success', 'Manual and its contents are deleted');
     }
 }

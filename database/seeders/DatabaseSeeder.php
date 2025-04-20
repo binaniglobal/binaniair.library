@@ -8,8 +8,8 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use App\Models\Permission;
+use App\Models\Role;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
@@ -23,31 +23,41 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         //Works both for Manual and their Items
-        Permission::create(['name' => 'can add']);
-        Permission::create(['name' => 'can view']);
-        Permission::create(['name' => 'can reset user password']);
-        Permission::create(['name' => 'can edit']);
-        Permission::create(['name' => 'can destroy']);
+        Permission::create(['name' => 'create-manual']);
+        Permission::create(['name' => 'view-manual']);
+        Permission::create(['name' => 'edit-manual']);
+        Permission::create(['name' => 'destroy-manual']);
+
+        Permission::create(['name' => 'create-user']);
+        Permission::create(['name' => 'view-user']);
+        Permission::create(['name' => 'edit-user']);
+        Permission::create(['name' => 'destroy-user']);
+
+        Permission::create(['name' => 'view-report']);
+        Permission::create(['name' => 'generate-report']);
+
+        Permission::create(['name' => 'issue-manual']);
+        Permission::create(['name' => 'reset-password']);
+
+        Permission::create(['name' => 'view-home']);
+
+        // Do not forget to add permission like view-manual-company-manuals
 
         $superAdmin = Role::create(['name' => 'super-admin']);
-        $superAdmin->givePermissionTo(['can add', 'can view', 'can edit', 'can destroy', 'can reset user password']);
+        $superAdmin->givePermissionTo(['view-home', 'create-manual', 'view-manual', 'edit-manual', 'destroy-manual', 'view-user', 'edit-user', 'destroy-user', 'reset-password', 'view-report', 'generate-report']);
 
         $superAdminRole = Role::create(['name' => 'SuperAdmin']);
-        $superAdminRole->givePermissionTo(['can add', 'can view', 'can destroy', 'can reset user password']);
+        $superAdminRole->givePermissionTo(['view-home', 'view-manual']);
 
         $adminRole = Role::create(['name' => 'admin']);
-        $adminRole->givePermissionTo(['can add', 'can view', 'can destroy', 'can reset user password']);
-
-        $librarianRole = Role::create(['name' => 'librarian']);
-        $librarianRole->givePermissionTo(['can add', 'can view', 'can update', 'can destroy']);
+        $adminRole->givePermissionTo(['view-home', 'view-manual']);
 
         $useRole = Role::create(['name' => 'user']);
-        $useRole->givePermissionTo(['can view']);
+        $useRole->givePermissionTo(['view-manual']);
 
 //
         $SuperAdmin = User::create([
-            'uid' => uuid_create(UUID_TYPE_DEFAULT),
-            'name' => 'SuperAdmin',
+            'name' => 'Super-admin',
             'surname' => 'BinaniAir',
             'email' => 'super-admin@binaniair.com',
             'phone' => '09000023456',
@@ -55,10 +65,20 @@ class DatabaseSeeder extends Seeder
             'remember_token' => Str::random(10),
         ]);
         $SuperAdmin->assignRole('super-admin');
-        $SuperAdmin->givePermissionTo(['can add', 'can view', 'can edit', 'can destroy']);
+        $SuperAdmin->givePermissionTo(['view-home', 'create-manual', 'view-manual', 'edit-manual', 'destroy-manual','create-user', 'view-user', 'edit-user', 'destroy-user', 'reset-password', 'view-report', 'generate-report']);
+
+        $SuperAdmin = User::create([
+            'name' => 'SuperAdmin',
+            'surname' => 'BinaniAir',
+            'email' => 'SuperAdmin@binaniair.com',
+            'phone' => '09000023356',
+            'password' => static::$password ??= Hash::make('password'),
+            'remember_token' => Str::random(10),
+        ]);
+        $SuperAdmin->assignRole('SuperAdmin');
+        $SuperAdmin->givePermissionTo(['view-home','create-manual', 'view-manual', 'edit-manual', 'destroy-manual', 'create-user', 'view-user', 'edit-user', 'destroy-user', 'reset-password']);
 
         $Admin = User::create([
-            'uid' => uuid_create(UUID_TYPE_DEFAULT),
             'name' => 'Admin',
             'surname' => 'BinaniAir',
             'email' => 'admin@binaniair.com',
@@ -67,22 +87,9 @@ class DatabaseSeeder extends Seeder
             'remember_token' => Str::random(10),
         ]);
         $Admin->assignRole('admin');
-        $Admin->givePermissionTo(['can add', 'can view', 'can edit', 'can destroy']);
-//
-        $librarian = User::create([
-            'uid' => uuid_create(UUID_TYPE_DEFAULT),
-            'name' => 'Librarian',
-            'surname' => 'BinaniAir',
-            'email' => 'librarian@binaniair.com',
-            'phone' => '09130023456',
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
-        ]);
-        $librarian->assignRole('librarian');
-        $librarian->givePermissionTo(['can add', 'can view', 'can edit']);
-//
+        $Admin->givePermissionTo(['create-manual', 'view-manual', 'edit-manual', 'create-user', 'view-user', 'edit-user', 'reset-password', 'issue-manual']);
+
         $user = User::create([
-            'uid' => uuid_create(UUID_TYPE_DEFAULT),
             'name' => 'User',
             'surname' => 'BinaniAir',
             'email' => 'user@binaniair.com',
@@ -91,39 +98,48 @@ class DatabaseSeeder extends Seeder
             'remember_token' => Str::random(10),
         ]);
         $user->assignRole('user');
-        $user->givePermissionTo(['can view']);
+        $user->givePermissionTo(['view-manual']);
 
 
-        $manual = Manuals::create([
-            'mid' => uuid_create(UUID_TYPE_DEFAULT),
-            'name' => 'Company Manuals',
-        ]);
-
-        $manuals = Manuals::all();
-        foreach ($manuals as $manualId) {
-            $permissionName = "access-manual-{$manualId->name}";
-            Permission::Create(['name' => $permissionName]);
-            $users = User::role(['Admin', 'Librarian'])->get();
-
-            foreach ($users as $user) {
-                // Assign the permission to each user
-                $user->givePermissionTo($permissionName);
-            }
-        }
+//        $manual = Manuals::create([
+//            'name' => 'Company Manuals',
+//        ]);
+//
+//
+//        $getParentManual = Manuals::where('name', $manual->name)->first();
+//        $permissionName = "access-manual-{$getParentManual->name}";
+//        Permission::Create(['name' => $permissionName]);
+//        $users = User::role(['super-admin', 'SuperAdmin', 'Admin'])->get();
+//        foreach ($users as $user) {
+//            // Assign the permission to each user
+//            $user->givePermissionTo($permissionName);
+//        }
 
 
-        $manuals = ManualsItem::all();
-        foreach ($manuals as $manualId) {
-            $getParentManual = Manuals::where('mid', $manualId->manual_uid)->first();;
-            $permissionName = "access-manual-{$getParentManual->name}.{$manualId->name}";
-            Permission::Create(['name' => $permissionName]);
-            $users = User::role(['Admin', 'Librarian'])->get();
-            foreach ($users as $user) {
-                // Assign the permission to each user
-                $user->givePermissionTo($permissionName);
-            }
-        }
+//        $manuals = Manuals::all();
+//        foreach ($manuals as $manualId) {
+//            $permissionName = "access-manual-{$manualId->name}";
+//            Permission::Create(['name' => $permissionName]);
+//            $users = User::role(['super-admin', 'SuperAdmin', 'Admin', 'Librarian'])->get();
+//
+//            foreach ($users as $user) {
+//                // Assign the permission to each user
+//                $user->givePermissionTo($permissionName);
+//            }
+//        }
 
+
+//        $manuals = ManualsItem::all();
+//        foreach ($manuals as $manualId) {
+//            $getParentManual = Manuals::where('mid', $manualId->manual_uid)->first();;
+//            $permissionName = "access-manual-{$getParentManual->name}.{$manualId->name}";
+//            Permission::Create(['name' => $permissionName]);
+//            $users = User::role(['super-admin', 'SuperAdmin', 'Admin', 'Librarian'])->get();
+//            foreach ($users as $user) {
+//                // Assign the permission to each user
+//                $user->givePermissionTo($permissionName);
+//            }
+//        }
 
 
 //      $manual = Manuals::create([

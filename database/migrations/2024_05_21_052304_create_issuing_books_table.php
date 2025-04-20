@@ -12,10 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('issuing_books', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('ibd')->unique()->index();
-            $table->string('user_id');
-            $table->string('manual_id');
+            $table->uuid('issue_uid')->primary()->index();
+            $table->string('user_uid');
+            $table->string('manual_uid');
             $table->dateTime('date-time');
             $table->timestamps();
         });

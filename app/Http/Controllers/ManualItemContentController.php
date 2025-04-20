@@ -8,10 +8,11 @@ use App\Models\Role;
 use http\Env;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Permission;
+use App\Models\Permission as Permission;
 
 class ManualItemContentController extends Controller
 {
@@ -20,7 +21,7 @@ class ManualItemContentController extends Controller
      */
     public function index($id)
     {
-        return view('manuals.items.contents.index', ['Id' => $id, 'Manual' => ManualsItem::where('miid', $id)->orderBy('name', 'asc')->first(), 'Items' => ManualItemContent::where('manual_uid', $id)->orderBy('name', 'asc')->get()]);
+        return view('manuals.items.contents.index', ['Id' => $id, 'Manual' => ManualsItem::where('miid', $id)->orderBy('name', 'asc')->first(), 'Items' => ManualItemContent::where('manual_items_uid', $id)->orderBy('name', 'asc')->get()]);
     }
 
     /**
@@ -28,8 +29,8 @@ class ManualItemContentController extends Controller
      */
     public function store(Request $request, ManualItemContent $manualItemContent)
     {
-        $validate = $request->validate([
-            'manual_name' => 'string',
+        $request->validate([
+            'manual_name' => 'string|unique:manuals_item_contents,name',
             'type' => 'string',
             'file' => 'array|max:5', // Limit to 5 uploads
             'file.*' => 'file|mimes:pdf|max:' . \env('FILE_SIZE'), // Validation rules for each file
@@ -47,36 +48,38 @@ class ManualItemContentController extends Controller
             $fileSize = $file->getSize(); // Get file size in bytes
             $mimeType = $file->getClientMimeType(); // Get MIME type
 
+            $customName = Str::beforeLast($fileName, '.pdf');
+            $getParentManual = getManualById($request->manual_uid);
+            $getItemManual = getManualItemsFolderById($request->manual_uid, $request->id);
+
             try {
+
                 // Store file data to database
                 $fileData = [
-                    'micd' => uuid_create(UUID_TYPE_DEFAULT),
-                    'manual_uid' => $request->id,
-                    'manual_iid' => $request->manual_uid,
-                    'name' => Str::beforeLast($fileName, '.pdf'),
+                    'micd' => Str::uuid(),
+                    'manual_uid' => $request->manual_uid,
+                    'manual_items_uid' => $request->id,
+                    'name' => $customName,
                     'link' => $path,
                     'file_size' => $fileSize, // Size in byte
                     'file_type' => $mimeType, //Application type
                 ];
-                // Use your model to save data to the database (replace with your model logic)
-                $manualItemContent::insert($fileData);
+                if (!empty($fileData)) {
+                    $manualItemContent::insert($fileData);
+                    $permissionName = "access-manual-{$getParentManual->name}.{$getItemManual->name}.{$customName}";
+                    // Create permission
+                    $permission = Permission::firstOrCreate(['name' => $permissionName]);
+                    if (auth()->check() && !auth()->user()->hasPermissionTo($permission)) {
+                        auth()->user()->givePermissionTo($permission);
+                    }
+                } else {
+                    Storage::disk('privateSubManualContent')->delete($path);
+                }
                 return redirect(route('manual.items.content.index', $request->id))->with('success', 'File uploaded Successfully');
             } catch (\Exception $exception) {
-                return response()->json([
-                    'error' => $exception->getMessage(),
-                ]);
-            }
-        }
-    }
-
-    private function giveAllPermissions($permission)
-    {
-        $roles = Role::whereIn('name', ['Admin', 'Librarian'])->get();
-
-        foreach ($roles as $role) {
-            // Append the permission to all users with the role
-            foreach ($role->users as $user) {
-                $user->givePermissionTo($permission);
+                Log::log('error', 'Error Message: ' . $exception->getMessage());
+                Storage::disk('privateSubManualContent')->delete($path);
+                return redirect(route('manual.index'));
             }
         }
     }
@@ -124,8 +127,16 @@ class ManualItemContentController extends Controller
             if (!empty($path['file_type']) && $path['file_type'] != 'Folder') {
                 if (!empty($path['link'])) {
                     if (Storage::disk('privateSubManualContent')->exists($path['link'])) {
+
+                        $getParentManual = getManualById($path['manual_uid']);
+                        $getManualItem = getManualItemsFolderById($path['manual_uid'], $path['manual_items_uid']);
+
+                        $permissionName = "access-manual-{$getParentManual->name}.{$getManualItem->name}.{$path['name']}";
+                        removePermissionFromAll($permissionName);
+
                         Storage::disk('privateSubManualContent')->delete($path['link']);
                         $manualItemContent::where('micd', $ids)->delete();
+
                         return redirect(route('manual.items.content.index', $id, $ids))->with('success', $path['name'] . ' File Deleted');
                     } else {
                         return response()->json(['error' => 'File not found'], 404);

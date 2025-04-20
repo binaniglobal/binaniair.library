@@ -8,9 +8,11 @@ use App\Models\ManualsItem;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Permission;
+use App\Models\Permission as Permission;
 
 class ManualsItemController extends Controller
 {
@@ -27,72 +29,90 @@ class ManualsItemController extends Controller
      */
     public function store(Request $request, ManualsItem $manualsItem)
     {
-        $validate = $request->validate([
-            'manual_name' => 'string',
-            'type' => 'string',
-            'files' => 'array|max:10', // Limit to 5 uploads
-            'files.*' => 'file|mimes:pdf|max:' . \env('FILE_SIZE'), // Validation rules for each file
+        $validate = Validator::make($request->all(), [
+            'manual_name' => 'nullable|string|unique:manuals_items,name', // Allow nullable if not used in 'files' case
+            'type' => 'required|string',
+            'files' => 'array|max:10',
+            'files.*' => [
+                'file',
+                'mimes:pdf',
+                'max:' . env('FILE_SIZE', 40960), // Fallback size if env not set
+                function ($attribute, $value, $fail) {
+                    $fileName = $value->getClientOriginalName();
+
+                    if (DB::table('manuals_items')
+                        ->whereRaw('LOWER(name) = ?', [strtolower(Str::beforeLast($fileName, '.pdf'))])
+                        ->exists()) {
+                        $fail("The file '{$fileName}' already exists in the system.");
+                    }
+                },
+            ],
         ]);
-        if (!empty($validate['type']) && $validate['type'] != 'Folder') {
-            foreach ($request->file('files') as $key => $file) {
-                // Check if file is valid
+
+        if ($validate->fails()) {
+            return redirect()->back()->withErrors($validate)->withInput();
+        }
+
+        $getParentManual = getManualById($request->id);
+
+        if (!empty($request->type) && $request->type !== 'Folder') {
+            foreach ($request->file('files') as $file) {
+
                 if (!$file->isValid()) {
                     return response()->json(['error' => 'Uploaded file is not valid'], 400);
                 }
-                //Please make sure there is no . It should only exist when there is a format after it.
+
                 $fileName = $file->getClientOriginalName();
+                $customName = Str::beforeLast($fileName, '.pdf');
                 $fileNameUnique = Str::random(4) . '_' . $fileName;
+
                 $path = Storage::disk('privateSubManual')->putFileAs('', $file, $fileNameUnique);
 
-                $manuals = $manualsItem::create([
-                    'miid' => uuid_create(UUID_TYPE_DEFAULT),
+                $manual = $manualsItem::create([
                     'manual_uid' => $request->id,
-                    'name' => Str::beforeLast($fileName, '.pdf'),
+                    'name' => $customName,
                     'link' => $path,
                     'file_size' => $file->getSize(),
                     'file_type' => $file->getClientMimeType(),
                 ]);
-                $getParentManual = $this->getManualById($request->id);
-                if ($manuals) {
-                    $permissionName = "access-manual-{$getParentManual->name}.{$request->manual_name}";
-                    Permission::Create(['name' => $permissionName]);
-                }
 
-                return redirect(route('manual.items.index', $request->id))->with(['success', 'Files uploaded successfully!']);
-            }
-        } else {
-            $manual = ManualsItem::create([
-                'miid' => uuid_create(UUID_TYPE_DEFAULT),
-                'manual_uid' => $request->id,
-                'name' => $request->manual_name,
-                'link' => $request->manual_name,
-                'file_size' => '0MB', // Size in byte
-                'file_type' => 'Folder',
-            ]);
-            $getParentManual = $this->getManualById($request->id);
-            if ($manual) {
-                $permissionName = "access-manual-{$getParentManual->name}.{$request->manual_name}";
-                Permission::Create(['name' => $permissionName]);
-                $users = User::role(['SuperAdmin', 'Admin', 'Librarian'])->get();
-
-                foreach ($users as $user) {
-                    // Assign the permission to each user
-                    $user->givePermissionTo($permissionName);
+                if ($manual) {
+                    $permissionName = "access-manual-{$getParentManual->name}.{$customName}";
+                    // Create permission
+                    $permission = Permission::firstOrCreate(['name' => $permissionName]);
+                    if (auth()->check() && !auth()->user()->hasPermissionTo($permission)) {
+                        auth()->user()->givePermissionTo($permission);
+                    }
+                } else {
+                    Storage::disk('privateSubManual')->delete($path);
                 }
             }
-            return redirect(route('manual.items.index', $request->id))->with('success', 'Folder Created');
+
+            return redirect(route('manual.items.index', $request->id))
+                ->with('success', 'Files uploaded successfully!');
         }
+
+        // Else case: creating a Folder
+        $permissionName = "access-manual-{$getParentManual->name}.{$request->manual_name}";
+        $manual = $manualsItem::create([
+            'manual_uid' => $request->id,
+            'name' => $request->manual_name,
+            'link' => $request->manual_name,
+            'file_size' => '0MB',
+            'file_type' => 'Folder',
+        ]);
+
+        if ($manual) {
+            $permission = Permission::firstOrCreate(['name' => $permissionName]);
+            if (auth()->check() && !auth()->user()->hasPermissionTo($permission)) {
+                auth()->user()->givePermissionTo($permission);
+            }
+        }
+
+        return redirect(route('manual.items.index', $request->id))
+            ->with('success', 'Folder created successfully!');
     }
 
-    private function getManualById($id)
-    {
-        return Manuals::where('mid', $id)->first();
-    }
-
-    private function getManualItemsById($id)
-    {
-        return ManualsItem::where('manual_uid', $id)->where('file_type', 'Folder')->get();
-    }
 
     /**
      * Show the form for creating a new resource.
@@ -134,9 +154,15 @@ class ManualsItemController extends Controller
     {
         if (Auth::user()->can('can destroy')) {
             $path = $manualsItem::where('manual_uid', $id)->where('miid', $ids)->first();
+            $getParentManual = getManualById($id);
             if (!empty($path['file_type']) && $path['file_type'] != 'Folder') {
                 if (Storage::disk('privateSubManual')->exists($path['link'])) {
                     Storage::disk('privateSubManual')->delete($path['link']);
+                    //Remove permissions of the folders deleted.
+                    $getManualItem = getManualItemById($id, $ids);
+                    $permissionName = "access-manual-{$getParentManual->name}.{$getManualItem->name}";
+                    removePermissionFromAll($permissionName);
+                    //Remove the file information from the database.
                     $manualsItem::where('manual_uid', $id)->where('miid', $ids)->where('file_type', 'application/pdf')->delete();
                     return redirect(route('manual.items.index', $id, $ids))->with('success', $path['name'] . ' File Deleted');
                 } else {
@@ -144,39 +170,32 @@ class ManualsItemController extends Controller
                 }
 
             } else {
-                $folderManual = $manualsItem::where('manual_uid', $id)->where('file_type', 'Folder')->get();
-                $folderManualContent = $manualItemContent::where('manual_iid', $id)->get();
-                foreach ($folderManual as $item) {
-                    if (Storage::disk('privateSubManual')->exists($item->link)) {
-                        Storage::disk('privateSubManual')->delete($item->link);
-                    }
-                }
+                $folderManualContent = $manualItemContent::where('manual_items_uid', $ids)->get();
+                $getManualItem = getManualItemsFolderById($id, $ids);
+                //Remove permissions of the folders deleted.
+                $permissionName = "access-manual-{$getParentManual->name}.{$getManualItem->name}";
+                removePermissionFromAll($permissionName);
+
                 foreach ($folderManualContent as $item) {
                     if (Storage::disk('privateSubManualContent')->exists($item->link)) {
                         Storage::disk('privateSubManualContent')->delete($item->link);
                     }
+                    //Remove all the file permissions
+                    $permissionNameAll = "access-manual-{$getParentManual->name}.{$getManualItem->name}.{$item->name}";
+                    removePermissionFromAll($permissionNameAll);
                 }
-                $getParentManual = $this->getManualById($request->id);
-                $getManualItem = $this->getManualItemsById($request->id);
-                foreach ($getManualItem as $item) {
-                    $permissionName = "access-manual-{$getParentManual->name}.{$item->name}";
-                    $this->removePermissionFromAll($permissionName);
-                }
-                $manualsItem::where('manual_uid', $id)->where('file_type', 'Folder')->delete();
-                $manualItemContent::where('manual_iid', $id)->delete();
+
+                //Delete Folders and its contents
+                $manualsItem::where('manual_uid', $id)->where('miid', $ids)->where('file_type', 'Folder')->delete();
+                $manualItemContent::where('manual_items_uid', $ids)->delete();
+
+
                 return redirect(route('manual.items.index', $id, $ids))->with('success', 'Folder Deleted');
             }
         } else {
             return response()->json(['error' => 'You do not have permission to delete.'], 404);
         }
 
-    }
-
-    private function removePermissionFromAll($permissionName)
-    {
-        $permission = Permission::findByName($permissionName);
-        // Remove the permission globally
-        $permission->delete();
     }
 
     public

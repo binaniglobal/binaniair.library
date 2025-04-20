@@ -1024,9 +1024,20 @@ z"/>
                 </div>
                 <!-- /Logo -->
 
+
                 <div class="card-body mt-2">
                     <h4 class="mb-2">Welcome to BinaniAir Library! 👋</h4>
                     <p class="mb-4">Please sign-in to your account and start the adventure</p>
+
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
                     <form id="formAuthentication" class="mb-3" action="{{ route('login') }}" method="POST">
                         @csrf

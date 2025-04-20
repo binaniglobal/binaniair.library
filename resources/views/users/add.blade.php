@@ -63,7 +63,7 @@
                                        placeholder="+23481000000"/>
                             </div>
                         </div>
-                        <hr class="my-4 mx-n4"/>
+                        <hr class="my-4 mx-n4 m-auto"/>
                         <h6>2. Role & Permissions</h6>
                         <div class="row mb-3">
                             <label class="col-sm-3 col-form-label" for="role">Role</label>

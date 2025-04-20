@@ -50,19 +50,19 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row mb-3">
-                            <label class="col-sm-3 col-form-label" for="date_return"> Date Returned</label>
-                            <div class="col-sm-9">
-                                <div class="form-floating form-floating-outline">
-                                    <input
-                                        type="text"
-                                        id="date_return"
-                                        class="form-control dob-picker"
-                                        placeholder="YYYY-MM-DD"/>
-                                    <label for="date_return">Date Returned</label>
-                                </div>
-                            </div>
-                        </div>
+{{--                        <div class="row mb-3">--}}
+{{--                            <label class="col-sm-3 col-form-label" for="date_return"> Date Returned</label>--}}
+{{--                            <div class="col-sm-9">--}}
+{{--                                <div class="form-floating form-floating-outline">--}}
+{{--                                    <input--}}
+{{--                                        type="text"--}}
+{{--                                        id="date_return"--}}
+{{--                                        class="form-control dob-picker"--}}
+{{--                                        placeholder="YYYY-MM-DD"/>--}}
+{{--                                    <label for="date_return">Date Returned</label>--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
 
                         <div class="pt-4">
                             <div class="row justify-content-end">
