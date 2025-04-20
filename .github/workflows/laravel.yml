@@ -1,0 +1,53 @@
+name: 🚀 Laravel Deploy to CPanel
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v3
+
+      - name: 💾 Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: mbstring, bcmath, xml, ctype, fileinfo, tokenizer, openssl, pdo, curl
+
+      - name: 📦 Install Dependencies
+        run: |
+          composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+
+      - name: 🧹 Prepare Laravel for Production
+        run: |
+          php artisan config:clear
+          php artisan route:clear
+          php artisan view:clear
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+
+      - name: 🔐 Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SFTP_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.SFTP_PORT }} ${{ secrets.SFTP_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 📤 Upload via Rsync
+        run: |
+          rsync -avz --delete \
+            -e "ssh -p ${{ secrets.SFTP_PORT }}" \
+            --exclude ".env" \
+            --exclude ".git" \
+            --exclude "node_modules" \
+            ./ ${{ secrets.SFTP_USER }}@${{ secrets.SFTP_HOST }}:${{ secrets.REMOTE_PATH }}
+
+      - name: 🛠️ Run Laravel Migrations on Server (Optional)
+        run: |
+          ssh -p ${{ secrets.SFTP_PORT }} ${{ secrets.SFTP_USER }}@${{ secrets.SFTP_HOST }} "cd ${{ secrets.REMOTE_PATH }} && php artisan migrate --force"
