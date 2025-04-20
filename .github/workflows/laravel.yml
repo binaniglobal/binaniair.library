@@ -41,7 +41,7 @@ jobs:
 
       - name: 🚀 Test SSH Connection
         run: |
-          ssh -p ${{ secrets.SFTP_PORT }} -o StrictHostKeyChecking=no user@${{ secrets.SFTP_HOST }} "echo Connected!"
+          ssh -p ${{ secrets.SFTP_PORT }} -o StrictHostKeyChecking=no user@${{ secrets.SFTP_HOST }} "echo Connected!" 
 
       - name: 📤 Upload via Rsync
         run: |
