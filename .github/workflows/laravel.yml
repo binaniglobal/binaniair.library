@@ -32,16 +32,16 @@ jobs:
           php artisan route:cache
           php artisan view:cache
 
-#      - name: 🔐 Setup SSH Key
-#        run: |
-#          mkdir -p ~/.ssh
-#          echo "${{ secrets.SFTP_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-#          chmod 600 ~/.ssh/id_rsa
-#          ssh-keyscan -p ${{ secrets.SFTP_PORT }} ${{ secrets.SFTP_HOST }} >> ~/.ssh/known_hosts
-
-      - name: 🚀 Test SSH Connection
+      - name: 🔐 Setup SSH Key
         run: |
-          ssh -p ${{ secrets.SFTP_PORT }} -o StrictHostKeyChecking=no user@${{ secrets.SFTP_HOST }} "echo Connected!" 
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SFTP_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p ${{ secrets.SFTP_PORT }} ${{ secrets.SFTP_HOST }} >> ~/.ssh/known_hosts
+
+#      - name: 🚀 Test SSH Connection
+#        run: |
+#          ssh -p ${{ secrets.SFTP_PORT }} -o StrictHostKeyChecking=no user@${{ secrets.SFTP_HOST }} "echo Connected!"
 
       - name: 📤 Upload via Rsync
         run: |
