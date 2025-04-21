@@ -38,12 +38,12 @@ jobs:
       - name: 🔐 Setup SSH Key
         run: |
           if [ -z "${{ secrets.SFTP_PORT }}" ]; then
-            echo "❌ Missing SFTP_PORT or SFTP_HOST secret"
+            echo "❌ Missing SFTP_PORT"
             exit 1
           fi
 
           if [ -z "${{ secrets.SFTP_HOST }}" ]; then
-            echo "❌ Missing SFTP_PORT or SFTP_HOST secret"
+            echo "❌ Missing SFTP_HOST secret"
             exit 1
           fi
 
