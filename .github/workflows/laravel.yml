@@ -11,7 +11,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: main  # Enables access to environment-scoped secrets
+    environment: main  # Enables access to environment-scoped secrets 
 
     steps:
       - name: 📥 Checkout Code
