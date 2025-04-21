@@ -11,7 +11,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: main  # Enables access to environment-scoped secrets 
+    environment: main  # Enables access to environment-scoped secrets
 
     steps:
       - name: 📥 Checkout Code
@@ -39,11 +39,16 @@ jobs:
           php artisan route:cache
           php artisan view:cache
 
-      - name: 🔐 Setup SSH Key
+      - name: 🗂️ Create .ssh directory
+        run: mkdir -p ~/.ssh
+
+      - name: 🗝️ Add SSH Key
         run: |
-          mkdir -p ~/.ssh
           echo "${{ secrets.SFTP_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+
+      - name: 🤝 Add Host to known_hosts
+        run: |
           ssh-keyscan -p ${{ secrets.SFTP_PORT }} ${{ secrets.SFTP_HOST }} >> ~/.ssh/known_hosts
 
       #      - name: ✅ Test SSH Connection
