@@ -4,10 +4,14 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: main  # Enables access to environment-scoped secrets
 
     steps:
       - name: 📥 Checkout Code
@@ -23,8 +27,8 @@ jobs:
         run: |
           composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
-#      - name: Run Static Analysis
-#        run: ./vendor/bin/phpstan --error-format=github
+      #      - name: 🔍 Run Static Analysis
+      #        run: ./vendor/bin/phpstan --error-format=github
 
       - name: 🧹 Prepare Laravel for Production
         run: |
@@ -38,61 +42,13 @@ jobs:
       - name: 🔐 Setup SSH Key
         run: |
           mkdir -p ~/.ssh
-          echo "-----BEGIN OPENSSH PRIVATE KEY-----
-  b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAACFwAAAAdzc2gtcn
-  NhAAAAAwEAAQAAAgEAskyPzLjgA0P+TYqu5NzkGp0TrRPrXD2cHQnlnAoCUdmofas5ysYT
-  vEyjNYo4yNevhdpQCM7nTy/IPFlor/niDibMjKwdprI9WMAq5mWUKlX1Dt3fMoJBBn3pyN
-  LN/x33BoxQEdT+RBEk3IuAq3YeihrzNDLsEvH5ELgewel3Q2KHhLNgm6bGXMvtcWtJPjY3
-  t6G5QVVnGsDL9pOJhRWnaLvAmQKAXP2dKpIAprW1mbotbo95j3fjTukIYw3cYfuwzlJRea
-  F/kiQJ3+qktPusoIYckjt1JxMxjucwTZ5FRcF6XpMvpxxgjG/KDxQC8+gmPAPaGxMw6MNJ
-  qpcVWVMvWxmd9BV4kF7aDVPg+LU36U1Nx/I29FvmvFDGwxg5W6PBeBBCK15Nze8Gt6aAJd
-  SXT4ueE7j6bUIptI7hL+/5OcbU3lqjpXmjQladypLVpBJ6eNUcjTwfGXwzItTl3E22XJAV
-  lc8a+5Ffc42l3zNbykPHOwaJXVHJzFbMWk1im4nRVR3n+dGPlKgeonTefmVbnpCerEGEnO
-  cIwgAj4AH3zGy0wf3Iga8f7LjNWXwO8OOeGkwyjxZvar4lBUDRa7uT4n2qC2TtYA+1/xHa
-  ljsyJt6westqDLZKx1B9R2kzhAHJ1jW1cvqM+Qs9dwX0pczBuRoE6URAPF9L0CwZPiDJPM
-  kAAAdQ+bhnQvm4Z0IAAAAHc3NoLXJzYQAAAgEAskyPzLjgA0P+TYqu5NzkGp0TrRPrXD2c
-  HQnlnAoCUdmofas5ysYTvEyjNYo4yNevhdpQCM7nTy/IPFlor/niDibMjKwdprI9WMAq5m
-  WUKlX1Dt3fMoJBBn3pyNLN/x33BoxQEdT+RBEk3IuAq3YeihrzNDLsEvH5ELgewel3Q2KH
-  hLNgm6bGXMvtcWtJPjY3t6G5QVVnGsDL9pOJhRWnaLvAmQKAXP2dKpIAprW1mbotbo95j3
-  fjTukIYw3cYfuwzlJReaF/kiQJ3+qktPusoIYckjt1JxMxjucwTZ5FRcF6XpMvpxxgjG/K
-  DxQC8+gmPAPaGxMw6MNJqpcVWVMvWxmd9BV4kF7aDVPg+LU36U1Nx/I29FvmvFDGwxg5W6
-  PBeBBCK15Nze8Gt6aAJdSXT4ueE7j6bUIptI7hL+/5OcbU3lqjpXmjQladypLVpBJ6eNUc
-  jTwfGXwzItTl3E22XJAVlc8a+5Ffc42l3zNbykPHOwaJXVHJzFbMWk1im4nRVR3n+dGPlK
-  geonTefmVbnpCerEGEnOcIwgAj4AH3zGy0wf3Iga8f7LjNWXwO8OOeGkwyjxZvar4lBUDR
-  a7uT4n2qC2TtYA+1/xHaljsyJt6westqDLZKx1B9R2kzhAHJ1jW1cvqM+Qs9dwX0pczBuR
-  oE6URAPF9L0CwZPiDJPMkAAAADAQABAAACAHUTMsUxi955Eg2mh6q9pIYZKCdY0g2yYsTq
-  j7tDEzzdl/ZUrVEJeUIGbJCmXxz6C0XwEOeHvHjRnkCKUORkR1wVe/DOv3WKyh9xp3m7r2
-  uRH6WQaJOI1dvGZ/E3Ao6HBYJmNdlPq1nUjAjJDUcI+4qhoZpf6YWTH4Er9P5NJ8O2edfX
-  1RK/krayLQpxcRmJjlJkvfk5c8csW4FgZUde7Zsm1ZNjAhiNa1rdndHZtRHpHxXe3eonxb
-  k16QzpuBEarID9qoQcWGEEivtd3qL8MuEAztfydL2gq8Ty51PAHipsncZmDT9EsdzlNp9p
-  +3pesGRt/xQSKOZd/QwnwpvxtECb19qNUPW93hKHwlKrWnh80dWfHGy7Y8S12oAxnl+CQq
-  OqEZtpaly4NMIC9X65nlPfYjcoVIXMbVA1fK/W30QAu7yJXUXE6aAlHKeucFZC+IlSZ+kA
-  vh3zmKh4yUg2HxP216xC2xeX49V/dJy2ndLnJbFBmm13z0Vn9DnvqEOPRlvy1NbGOD8e/B
-  lBvsUju7ag6bzALEsMg/AwIWxtVafM7XV1BzRK9JhQ5rh/nNTJ090WrJRCQw0mHFFpXAmQ
-  SbSq7gi8o8tcJxx9DhE18I/ukjI/yvM5g6ziJbld+bDotrBzWphuzZAHAAJhONnMWEK9Qq
-  dAeXfKwLALfXtU7XGRAAABACoLHTde8vu5M0MgDHJJxRkWrGS9clfcQR9jNQbMUcYs9YUs
-  Ctk1/az2MRITEMvsDccakpAQQtH8SagJ1JVugVYVYFhpunN03yK9ENRnh0gYAdT96t6g/e
-  Ee3tRbkmAMiQ9bjWQtL7nFkDupKw05BcvLw7B+bBc0hHE3bfZOt7ZjGC99W20NunI+fVXK
-  hpHZunKBhbLai0UDXxY0tRX3XS3GH1fFAHGS5ffo6s/RFjMsVOFvbz2uCLKOla4glUptX2
-  UuowI9fJAxi26cdHcd33Xpo5faTLzxi4/J4oCi2S7YgGdDI1HUC4hGOW4Bo3kIzxXhUUns
-  KoC7YvhgWvG+VlAAAAEBANk7dmeK4xG3lazE1qzVbXio75ZLSfjgg1XQTdCY9n/+jWMQpP
-  Fh5xXRcF71vBMZp1Auyuvgppq/Xg0HJNdowjXdz7VlDxd6Ko6dnkpefg7EUd6Wzg6vBtqx
-  DVF95gd+VyO9VJ7c+V3rchnTETJA1BbYiicOfKrHXleqhY6nwpx4ACm2/PPgcIF+75TLX4
-  /wb/RugF8m7c25zHKzPjCIHqvNvD8/WjbhTcPyoQlCwAnOxuqqIZb7FskeMbGmqa/gmEmt
-  33cmWlKRdsuj3CGs8dvNm6sRUAocWiO9Ou3jOe+3ZiuTc1GulPt9FHJbC4HJWOYonixu+r
-  cUCGIp41DY5k0AAAEBANIeYqP6kWPWOsXCdlfCpiTDGUetFXZrt3BW9I/urRsic26e/ovG
-  IZi+JN3a5FtDpXMlVgdA2QZIPajmrUo+P2ubfWJTgMgj+4BrIUDSKbBo84doNsJEaNUeC+
-  pApstWDomV+uSQWdWtf+zApEJlwqJcTy8XIaw13N8NQqPjG7+JamkWxfBvXeJAZUK4Na40
-  SglwHk8weIlWsEhnsAOAe88Qtc/IoJU3btm7pyEOtZRK9nGXTm78ZrODrGAn7UA0NY/+LC
-  OTilpAPpoRBWavZ08CA+iaohQApzCT4wgI+W43n5bM/utrWgKs8RTmArOEKDnfXzAPmX9h
-  sp8Zf3qe5m0AAAAVbGlicmFyeUBiaW5hbmlhaXIuY29tAQIDBAUG
-  -----END OPENSSH PRIVATE KEY-----" > ~/.ssh/id_rsa
+          echo "${{ secrets.SFTP_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p 22 binaniair.com >> ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ secrets.SFTP_PORT }} ${{ secrets.SFTP_HOST }} >> ~/.ssh/known_hosts
 
-#      - name: 🚀 Test SSH Connection
-#        run: |
-#          ssh -p ${{ secrets.SFTP_PORT }} -o StrictHostKeyChecking=no user@${{ secrets.SFTP_HOST }} "echo Connected!"
+      #      - name: ✅ Test SSH Connection
+      #        run: |
+      #          ssh -p ${{ secrets.SFTP_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SFTP_USER }}@${{ secrets.SFTP_HOST }} "echo ✅ Connected!"
 
       - name: 📤 Upload via Rsync
         run: |
@@ -105,4 +61,5 @@ jobs:
 
       - name: 🛠️ Run Laravel Migrations on Server (Optional)
         run: |
-          ssh -p ${{ secrets.SFTP_PORT }} ${{ secrets.SFTP_USER }}@${{ secrets.SFTP_HOST }} "cd ${{ secrets.REMOTE_PATH }} && php artisan migrate --force"
+          ssh -p ${{ secrets.SFTP_PORT }} ${{ secrets.SFTP_USER }}@${{ secrets.SFTP_HOST }} \
+          "cd ${{ secrets.REMOTE_PATH }} && php artisan migrate --force"
