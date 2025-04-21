@@ -45,7 +45,7 @@
                                 $count = countManualItemsById($items->miid);
                                 $parentManual = Manuals::where('mid', $items->manual_uid)->first();
                             @endphp
-                            @can('access-manual-'.$parentManual->name)
+                            @can('access-manual-'.$parentManual->name.'.'.$items->name)
                                 <tr>
                                     @if($items->file_type == 'Folder')
                                         <td>

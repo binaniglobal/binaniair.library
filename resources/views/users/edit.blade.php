@@ -79,7 +79,7 @@
                                 <div class="form-floating form-floating-outline">
                                     <select id="role" name="role" class="selectpicker w-100" data-style="btn-default">
                                         @foreach($Roles as $role)
-                                            <option value="{{$role->id}}" {{ in_array($role->id, $AssignedRoles) ? 'selected': '' }}>
+                                            <option value="{{$role->uuid}}" {{ in_array($role->uuid, $AssignedRoles) ? 'selected': '' }}>
                                              {{ strtoupper($role->name) }}
                                             </option>
                                         @endforeach
@@ -103,8 +103,8 @@
                                         multiple
                                         data-actions-box="true">
                                         @foreach($Permissions as $permission)
-                                            <option value="{{ $permission->id }}"
-                                                {{ in_array($permission->id, $AssignedPermissions) ? 'selected' : '' }}>
+                                            <option value="{{ $permission->uuid }}"
+                                                {{ in_array($permission->uuid, $AssignedPermissions) ? 'selected' : '' }}>
                                             {{ strtoupper($permission->name) }}
                                         @endforeach
                                     </select>

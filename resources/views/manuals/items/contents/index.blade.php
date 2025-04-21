@@ -48,7 +48,7 @@
     //                            dd('access-manual-'.$parentManual->name.'.'. $Manual->name);
     //                            dd('access-manual-'. $Manual->name);
                             @endphp
-                            @can('access-manual-'.$parentManual->name.'.'. $Manual->name)
+                            @can('access-manual-'.$parentManual->name.'.'. $Manual->name.'.'.$items->name)
                                 <tr>
                                     <td>
                                         <a href="{{ route('download.contents', $items->link) }}">{{ $items->name }}</a>

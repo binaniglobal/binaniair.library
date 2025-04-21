@@ -32,7 +32,7 @@ class UserController extends Controller
     public function getUserName($id)
     {
         //Get the name of the user
-        $user = User::where('uid', $id)->first();
+        $user = User::where('uuid', $id)->first();
         return $user->name . ' ' . $user->surname;
     }
 
@@ -48,7 +48,7 @@ class UserController extends Controller
             'phone' => 'required|numeric|unique:users,phone',
             'role' => 'required|string',
             'permission' => 'required|array',
-            'permission.*' => 'exists:permissions,id',
+            'permission.*' => 'exists:permissions,uuid',
         ]);
         $password = Str::random(10);
         $email = Str::before($request->email, '@') . '@binaniair.com';
@@ -61,7 +61,7 @@ class UserController extends Controller
             'password' => Hash::make($password)
         ]);
         $user->assignRole($validate['role']);
-        $permissions = Permission::whereIn('id', $validate['permission'])->pluck('name')->toArray();
+        $permissions = Permission::whereIn('uuid', $validate['permission'])->pluck('name')->toArray();
         // Assign permissions to the user for the first time
         if ($user->permissions->isEmpty()) {
             $user->syncPermissions($permissions);
@@ -134,7 +134,8 @@ class UserController extends Controller
     {
         $authUser = Auth::user();
         $Edit = User::where('uuid', $id)->first();
-        $AssignedPermissions = $Edit->permissions->pluck('id')->toArray();
+
+        $AssignedPermissions = $Edit->permissions->pluck('uuid')->toArray();
         if (Auth::user()->hasRole(['user'])) {
             $data = [
                 'create-manual',
@@ -169,8 +170,7 @@ class UserController extends Controller
             $Permissions = Permission::all();
         }
 
-        $AssignedRoles = $Edit->roles->pluck('id')->toArray();
-
+        $AssignedRoles = $Edit->roles->pluck('uuid')->toArray();
         if (Auth::user()->hasRole(['super-admin'])) {
             $Roles = Role::whereNot('name', 'super-admin')->orderBy('name')->get();
         }
@@ -195,13 +195,13 @@ class UserController extends Controller
         $request->validate([
             'email' => 'required|string',
             'phone' => 'required|numeric',
-            'role' => 'nullable|numeric',
+            'role' => 'nullable|string',
             'permissions' => 'nullable|array',
-            'permissions.*' => 'exists:permissions,id',
+            'permissions.*' => 'exists:permissions,uuid',
         ]);
 
-        $permissions = Permission::whereIn('id', $request->permission)->pluck('name')->toArray();
-        $role = Role::where('id', $request->role)->pluck('name')->toArray();
+        $permissions = Permission::whereIn('uuid', $request->permission)->pluck('name')->toArray();
+        $role = Role::where('uuid', $request->role)->pluck('name')->toArray();
         // Update roles and permissions
         $user->syncRoles($role);
         $user->syncPermissions($request->permissions ?? [$permissions]);
@@ -213,8 +213,7 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-//        User::where('uid', $id)->delete();
-        $user = User::where('uid', $id)->first();
+        $user = User::where('uuid', $id)->first();
 
         //To substitute if the parent boot delete function in the User Model does not work again.
         //To remove the roles and permission of the user to be deleted.
