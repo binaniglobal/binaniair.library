@@ -151,7 +151,7 @@ class UserController extends Controller
                 'issue-manuals',
                 'view-home'
             ];
-            $Permissions = Permission::whereNotIn('name', [$data])->orWhereIn('name', $authUser->getPermissionNames())->get();
+            $Permissions = Permission::whereNotIn('name', $data)->orWhereIn('name', $authUser->getPermissionNames())->get();
         }
         if (Auth::user()->hasRole(['admin'])) {
             $data = [
@@ -160,7 +160,7 @@ class UserController extends Controller
                 'generate-report',
                 'reset-password',
             ];
-            $Permissions = Permission::whereNotIn('name', [$data])->orWhereIn('name', $authUser->getPermissionNames())->get();
+            $Permissions = Permission::whereNotIn('name', $data)->orWhereIn('name', $authUser->getPermissionNames())->get();
         }
 
         if (Auth::user()->hasRole(['super-admin', 'SuperAdmin'])) {

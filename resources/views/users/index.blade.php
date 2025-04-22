@@ -59,49 +59,55 @@
                                                 <i class="mdi mdi-dots-vertical"></i>
                                             </button>
                                             <div class="dropdown-menu">
-                                                {{--                                            {{dd($user->getRoleNames()->first())}}--}}
                                                 @can(['edit-user'])
-                                                    @if($user->getRoleNames()->first() === 'admin' || $user->getRoleNames()->first() === 'super-admin' || $user->getRoleNames()->first() === 'SuperAdmin')
-                                                        @if(\Illuminate\Support\Facades\Auth::user()->getRoleNames()->first() === 'admin' || \Illuminate\Support\Facades\Auth::user()->getRoleNames()->first() === 'super-admin' || $user->getRoleNames()->first() === 'SuperAdmin' )
+                                                    @if(!in_array($user->getRoleNames()->first(), ['super-admin', 'SuperAdmin']))
+                                                        @if($user->uuid !== auth()->user()->uuid)
                                                             <a class="dropdown-item"
                                                                href="{{ route('users.edit', [$user->uuid, \Illuminate\Support\Str::uuid()]) }}">
                                                                 <i class="mdi mdi-pencil-outline me-1"></i> Edit</a>
                                                         @endif
                                                     @else
-                                                        <a class="dropdown-item"
-                                                           href="{{ route('users.edit', [$user->uuid, \Illuminate\Support\Str::uuid()]) }}">
-                                                            <i class="mdi mdi-pencil-outline me-1"></i> Edit</a>
+                                                        @if(auth()->user()->hasRole('super-admin'))
+                                                            <a class="dropdown-item"
+                                                               href="{{ route('users.edit', [$user->uuid, \Illuminate\Support\Str::uuid()]) }}">
+                                                                <i class="mdi mdi-pencil-outline me-1"></i> Edit</a>
+                                                        @else
+                                                            <a class="dropdown-item disabled" href="#"
+                                                               onclick="return false;">
+                                                                <i class="mdi mdi-pencil-outline me-1"></i> Edit</a>
+                                                        @endif
                                                     @endif
-
                                                 @endcan
+
                                                 @can(['reset-password'])
-                                                    @if($user->getRoleNames()->first() === 'admin' || $user->getRoleNames()->first() === 'super-admin' || $user->getRoleNames()->first() === 'SuperAdmin')
-                                                        @if(\Illuminate\Support\Facades\Auth::user()->getRoleNames()->first() === 'admin' || \Illuminate\Support\Facades\Auth::user()->getRoleNames()->first() === 'super-admin' || $user->getRoleNames()->first() === 'SuperAdmin' )
+                                                    @if(!in_array($user->getRoleNames()->first(), ['super-admin', 'SuperAdmin']))
+                                                        <a class="dropdown-item"
+                                                           href="#" onclick="return true;">
+                                                            <i class="mdi mdi-circle-edit-outline me-1"></i> Reset
+                                                            Password(Feature coming soon)</a>
+                                                    @else
+                                                        @if(auth()->user()->hasRole('super-admin'))
                                                             <a class="dropdown-item"
                                                                href="#" onclick="return false;">
                                                                 <i class="mdi mdi-circle-edit-outline me-1"></i> Reset
                                                                 Password(Feature coming soon)</a>
                                                         @endif
-                                                    @else
-                                                        <a class="dropdown-item"
-                                                           href="#" onclick="return true;"
-                                                           aria-placeholder="This one should work">
-                                                            <i class="mdi mdi-circle-edit-outline me-1"></i> Reset
-                                                            Password(Feature coming soon)</a>
                                                     @endif
                                                 @endcan
+
                                                 @can(['destroy-user'])
-                                                    @if($user->getRoleNames()->first() == 'admin' || $user->getRoleNames()->first() == 'super-admin' || $user->getRoleNames()->first() === 'SuperAdmin')
-                                                        @if(\Illuminate\Support\Facades\Auth::user()->getRoleNames()->first() == 'admin' || \Illuminate\Support\Facades\Auth::user()->getRoleNames()->first() == 'super-admin' || $user->getRoleNames()->first() === 'SuperAdmin' )
+                                                    @if(!in_array($user->getRoleNames()->first(), ['super-admin', 'SuperAdmin', 'admin']))
+                                                        <a class="dropdown-item"
+                                                           href="{{ route('users.destroy', [$user->uuid, \Illuminate\Support\Str::uuid()]) }}">
+                                                            <i class="mdi mdi-trash-can-outline me-1"></i>
+                                                            Delete</a>
+                                                    @else
+                                                        @if(auth()->user()->hasRole('super-admin'))
                                                             <a class="dropdown-item"
                                                                href="{{ route('users.destroy', [$user->uuid, \Illuminate\Support\Str::uuid()]) }}">
                                                                 <i class="mdi mdi-trash-can-outline me-1"></i>
                                                                 Delete</a>
                                                         @endif
-                                                    @else
-                                                        <a class="dropdown-item"
-                                                           href="{{ route('users.destroy', [$user->uuid, \Illuminate\Support\Str::uuid()]) }}">
-                                                            <i class="mdi mdi-trash-can-outline me-1"></i> Delete</a>
                                                     @endif
                                                 @endcan
                                             </div>
@@ -126,8 +132,8 @@
                     "responsive": true, "lengthChange": false, "autoWidth": false,
                     buttons: [
                         'pageLength'
-                            @can(['create-user'])
-                            ,
+                        @can(['create-user'])
+                        ,
                         {
                             html: '<a class="btn btn-primary" href="{{ route('users.add') }}"><span class="fa fa-plus-circle" aria-hidden="true"></span>&nbsp; <i class="fa fa-user"></i></a>',
                             attr: {

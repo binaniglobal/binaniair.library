@@ -25,13 +25,17 @@ Route::get('/', function () {
 Auth::routes([
     'register' => false,
 ]);
-Route::get('/test-private-disk', function () {
-    try {
-        $result = Storage::disk('privateSubManual')->put('test.txt', 'This is a test file.');
-        return $result ? 'File written successfully!' : 'Failed to write file.';
-    } catch (\Exception $e) {
-        return $e->getMessage();
-    }
+//Route::get('/test-private-disk', function () {
+//    try {
+//        $result = Storage::disk('privateSubManual')->put('test.txt', 'This is a test file.');
+//        return $result ? 'File written successfully!' : 'Failed to write file.';
+//    } catch (\Exception $e) {
+//        return $e->getMessage();
+//    }
+//});
+
+Route::get('/storage/link', function () {
+    Artisan::call('storage:link');
 });
 
 Route::get('/maintenance/up', function () {

@@ -33,9 +33,9 @@ class ProductionSeeder extends Seeder
         foreach ($userSuper as $userData) {
             $user = User::create($userData); // Assumes you are using the User model.
             $user->assignRole('super-admin');
-            if (!$user->hasPermissionTo(['view-manual'])) {
+//            if (!$user->hasPermissionTo(['view-manual'])) {
                 $user->givePermissionTo(['view-manual']);
-            }
+//            }
         }
 
         $userSuperAdmin = [
@@ -56,9 +56,9 @@ class ProductionSeeder extends Seeder
         foreach ($userSuperAdmin as $userData) {
             $user = User::create($userData); // Assumes you are using the User model.
             $user->assignRole('SuperAdmin');
-            if (!$user->hasPermissionTo(['view-manual'])) {
+//            if (!$user->hasPermissionTo(['view-manual'])) {
                 $user->givePermissionTo(['view-manual']);
-            }
+//            }
         }
 
         $userAdmin = [
@@ -92,9 +92,9 @@ class ProductionSeeder extends Seeder
         foreach ($userAdmin as $userData) {
             $user = User::create($userData); // Assumes you are using the User model.
             $user->assignRole('admin');
-            if (!$user->hasPermissionTo(['view-manual'])) {
+//            if (!$user->hasPermissionTo(['view-manual'])) {
                 $user->givePermissionTo(['view-manual']);
-            }
+//            }
         }
 
         $users = [
@@ -387,9 +387,10 @@ class ProductionSeeder extends Seeder
         ];
         foreach ($users as $userData) {
             $user = User::create($userData); // Assumes you are using the User model.
-            if (!$user->hasPermissionTo(['view-manual'])) {
+            $user->assignRole('user');
+//            if (!$user->hasPermissionTo(['view-manual'])) {
                 $user->givePermissionTo(['view-manual']);
-            }
+//            }
         }
     }
 }

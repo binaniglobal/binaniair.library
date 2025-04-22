@@ -15,6 +15,7 @@ class PermissionSeeder extends Seeder
      * Run the database seeds.
      */
     protected static ?string $password;
+
     public function run(): void
     {
         //Works both for Manual and their Items
@@ -40,10 +41,10 @@ class PermissionSeeder extends Seeder
         $superAdmin->givePermissionTo(['view-home', 'create-manual', 'view-manual', 'edit-manual', 'destroy-manual', 'view-user', 'edit-user', 'destroy-user', 'reset-password', 'view-report', 'generate-report']);
 
         $superAdminRole = Role::create(['name' => 'SuperAdmin']);
-        $superAdminRole->givePermissionTo(['view-home','create-manual', 'view-manual', 'edit-manual', 'destroy-manual', 'create-user', 'view-user', 'edit-user', 'destroy-user', 'reset-password']);
+        $superAdminRole->givePermissionTo(['view-home', 'create-manual', 'view-manual', 'edit-manual', 'destroy-manual', 'create-user', 'view-user', 'edit-user', 'destroy-user', 'reset-password']);
 
         $adminRole = Role::create(['name' => 'admin']);
-        $adminRole->givePermissionTo(['view-home','create-manual', 'view-manual', 'edit-manual', 'destroy-manual', 'create-user', 'view-user', 'edit-user', 'destroy-user', 'reset-password']);
+        $adminRole->givePermissionTo(['view-home', 'create-manual', 'view-manual', 'edit-manual', 'destroy-manual', 'create-user', 'view-user', 'edit-user', 'destroy-user', 'reset-password']);
 
         $useRole = Role::create(['name' => 'user']);
         $useRole->givePermissionTo(['view-manual']);
