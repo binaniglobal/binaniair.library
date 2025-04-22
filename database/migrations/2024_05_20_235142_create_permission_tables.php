@@ -34,7 +34,7 @@ return new class extends Migration
         });
 
         Schema::create($tableNames['roles'], function (Blueprint $table) use ($teams, $columnNames) {
-            $table->uuid('uuid'); // role id
+            $table->uuid('uuid')->primary(); // role id - explicitly set as primary
             if ($teams || config('permission.testing')) { // permission.testing is a fix for sqlite testing
                 $table->uuid($columnNames['team_foreign_key'])->nullable();
                 $table->index($columnNames['team_foreign_key'], 'roles_team_foreign_key_index');
