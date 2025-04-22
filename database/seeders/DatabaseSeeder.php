@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
     {
 
         $this->call(PermissionSeeder::class);
-        $this->call(ProductionSeeder::class);
+//        $this->call(ProductionSeeder::class);
 
 //        $SuperAdmin = User::create([
 //            'name' => 'Super-admin',

@@ -56,7 +56,6 @@ class ManualItemContentController extends Controller
 
                 // Store file data to database
                 $fileData = [
-                    'micd' => Str::uuid(),
                     'manual_uid' => $request->manual_uid,
                     'manual_items_uid' => $request->id,
                     'name' => $customName,

@@ -36,16 +36,7 @@ class ManualsItemController extends Controller
             'files.*' => [
                 'file',
                 'mimes:pdf',
-                'max:' . env('FILE_SIZE', 40960), // Fallback size if env not set
-                function ($attribute, $value, $fail) {
-                    $fileName = $value->getClientOriginalName();
-
-                    if (DB::table('manuals_items')
-                        ->whereRaw('LOWER(name) = ?', [strtolower(Str::beforeLast($fileName, '.pdf'))])
-                        ->exists()) {
-                        $fail("The file '{$fileName}' already exists in the system.");
-                    }
-                },
+                'max:' . env('FILE_SIZE', 40960),
             ],
         ]);
 
