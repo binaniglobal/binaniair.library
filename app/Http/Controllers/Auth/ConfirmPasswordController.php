@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\ConfirmsPasswords;
+use Illuminate\Support\Facades\Auth;
 
 class ConfirmPasswordController extends Controller
 {
@@ -25,7 +26,14 @@ class ConfirmPasswordController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/manuals';
+    protected function redirectTo()
+    {
+        if (Auth::user()->hasPermissionTo('view-home')) {
+            return '/home';
+        } else {
+            return '/manuals';
+        }
+    }
 
     /**
      * Create a new controller instance.

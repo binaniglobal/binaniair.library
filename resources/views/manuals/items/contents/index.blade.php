@@ -16,7 +16,8 @@
             $user = Auth::user();
             $size = new \App\Http\Controllers\ManualsItemController();
         @endphp
-        <h4 class="py-3 mb-4"><span class="text-muted fw-light">Home / Manuals / <a href="javascript:void();" onclick="history.back()">{{ (getParentManual($Manual->manual_uid))->name }}</a></span>
+        <h4 class="py-3 mb-4"><span class="text-muted fw-light">Home / <a href="{{ route('manual.index') }}">Manuals</a> / <a
+                    href="{{ route('manual.items.index', ['id' => $Manual->manual_uid]) }}">{{ (getParentManual($Manual->manual_uid))->name }}</a></span>
             / {{ $Manual->name }}</h4>
 
         <!-- Responsive Datatable -->
@@ -45,8 +46,6 @@
                             @php
                                 $count = ManualItemContent::where('manual_items_uid', $items->miid)->count();
                                 $parentManual = Manuals::where('mid', $items->manual_uid)->first();
-    //                            dd('access-manual-'.$parentManual->name.'.'. $Manual->name);
-    //                            dd('access-manual-'. $Manual->name);
                             @endphp
                             @can('access-manual-'.$parentManual->name.'.'. $Manual->name.'.'.$items->name)
                                 <tr>

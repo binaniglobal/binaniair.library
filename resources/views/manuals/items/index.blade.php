@@ -12,7 +12,7 @@
         <link rel="stylesheet" href="{{ url('storage/assets/vendor/libs/flatpickr/flatpickr.css') }}"/>
     @endpush
     <div class="container-xxl flex-grow-1 container-p-y">
-        <h4 class="py-3 mb-4"><span class="text-muted fw-light">Home / <a href="javascript:void();" onclick="history.back()">Manuals</a></span>
+        <h4 class="py-3 mb-4"><span class="text-muted fw-light">Home / <a href="{{ route('manual.index') }}">Manuals</a></span>
             / {{ ucfirst($Manual->name) }}</h4>
         @php
             $user = Auth::user();

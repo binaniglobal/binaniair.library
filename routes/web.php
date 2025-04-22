@@ -18,10 +18,6 @@ Route::get('/', function () {
     return view('auth.login');
 })->name('index');
 
-//Route::get('/hash', function () {
-//    return view('welcome');
-//});
-
 Auth::routes([
     'register' => false,
 ]);
@@ -48,7 +44,7 @@ Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian|user'])-
     Route::get('/manual/sub-manuals/file/{filename}', [HomeController::class, 'downloadSubManuals'])->name('download.submanuals');
     Route::get('/manual/sub-manuals/content/file/{filename}', [HomeController::class, 'downloadSubManualsContent'])->name('download.contents');
 
-    Route::get('/profile', [ProfileController::class, 'index'])->middleware('password.confirm')->name('profile');
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::put('/update', [ProfileController::class, 'update'])->name('profile.update');
 
     //Start Manuals

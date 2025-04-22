@@ -55,11 +55,6 @@
                                         </td>
                                     @endif
                                     <td>{{ $manualCount }}</td>
-                                    {{--                            <td>@if($manual->status == 0)--}}
-                                    {{--                                    {{ __('Active') }}--}}
-                                    {{--                                @else--}}
-                                    {{--                                    {{ __('Disabled') }}--}}
-                                    {{--                                @endif</td>--}}
                                     @can('destroy-manual')
                                         <td>
                                             <div class="dropdown">

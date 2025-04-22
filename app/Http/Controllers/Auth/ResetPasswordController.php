@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\ResetsPasswords;
+use Illuminate\Support\Facades\Auth;
 
 class ResetPasswordController extends Controller
 {
@@ -25,5 +26,12 @@ class ResetPasswordController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/manuals';
+    protected function redirectTo()
+    {
+        if (Auth::user()->hasPermissionTo('view-home')) {
+            return '/home';
+        } else {
+            return '/manuals';
+        }
+    }
 }
