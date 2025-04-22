@@ -29,7 +29,7 @@
                         <div class="row mb-3">
                             <label class="col-sm-3 col-form-label" for="first_name">First Name</label>
                             <div class="col-sm-9">
-                                <input type="text" id="first_name" name="first_name" class="form-control"
+                                <input type="text" id="first_name" name="first_name" class="form-control" value="{{ old('first_name') ? old('first_name'):'' }}"
                                        placeholder="John"/>
                             </div>
                         </div>
@@ -37,6 +37,7 @@
                             <label class="col-sm-3 col-form-label" for="last_name">Last Name</label>
                             <div class="col-sm-9">
                                 <input type="text" id="last_name" name="last_name" class="form-control"
+                                       value="{{ old('last_name') ? old('last_name'):'' }}"
                                        placeholder="Doe"/>
                             </div>
                         </div>
@@ -47,7 +48,7 @@
                                     <input
                                         type="text"
                                         id="email"
-                                        name="email"
+                                        name="email" value="{{ old('email') ? old('email'):'' }}"
                                         class="form-control"
                                         placeholder="info"
                                         aria-label="info"
@@ -59,7 +60,7 @@
                         <div class="row mb-3">
                             <label class="col-sm-3 col-form-label" for="last_name">Phone Number</label>
                             <div class="col-sm-9">
-                                <input type="tel" id="phone" name="phone" class="form-control"
+                                <input type="tel" id="phone" name="phone" class="form-control" value="{{ old('email') ? old('email'):'' }}"
                                        placeholder="+23481000000"/>
                             </div>
                         </div>
@@ -97,7 +98,7 @@
                                         data-actions-box="true">
                                         @foreach($Permissions as $permission)
                                             <option
-                                                value="{{ $permission->id }}">{{ strtoupper($permission->name) }}</option>
+                                                value="{{ $permission->uuid }}">{{ strtoupper($permission->name) }}</option>
                                         @endforeach
                                     </select>
                                     <label for="selectpickerSelectDeselect">Select / Deselect All</label>
