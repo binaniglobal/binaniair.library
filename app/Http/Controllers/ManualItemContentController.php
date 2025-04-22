@@ -4,12 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\ManualItemContent;
 use App\Models\ManualsItem;
-use App\Models\Role;
-use http\Env;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\Permission as Permission;
@@ -31,9 +28,8 @@ class ManualItemContentController extends Controller
     {
         $request->validate([
             'manual_name' => 'string|unique:manuals_item_contents,name',
-            'type' => 'string',
             'file' => 'array|max:5', // Limit to 5 uploads
-            'file.*' => 'file|mimes:pdf|max:' . \env('FILE_SIZE'), // Validation rules for each file
+            'file.*' => ['file','mimes:pdf','max:' . env('FILE_SIZE', 40960)], // Validation rules for each file
         ]);
         $uploadedFiles = $request->file('file');
 
@@ -64,7 +60,7 @@ class ManualItemContentController extends Controller
                     'file_type' => $mimeType, //Application type
                 ];
                 if (!empty($fileData)) {
-                    $manualItemContent::insert($fileData);
+                    $manualItemContent::create($fileData);
                     $permissionName = "access-manual-{$getParentManual->name}.{$getItemManual->name}.{$customName}";
                     // Create permission
                     $permission = Permission::firstOrCreate(['name' => $permissionName]);
