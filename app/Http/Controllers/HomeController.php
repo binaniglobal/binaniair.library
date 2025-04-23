@@ -25,7 +25,12 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        if (Auth::user()->hasPermissionTo('view-home')) {
+            return view('home');
+        } else {
+            return view('manuals.index');
+        }
+
     }
 
     function downloadSubManuals($fileName)

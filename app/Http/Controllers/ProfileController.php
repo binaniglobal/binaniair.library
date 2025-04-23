@@ -54,28 +54,28 @@ class ProfileController extends Controller
      */
     public function update(Request $request)
     {
-        $user = User::find(Auth::user()->id);
+        $user = $request->user();
         $validate = $request->validate([
             'phone' => 'numeric|digits_between:10,15',
-            'currentPassword' => 'string',
-            'newPassword' => 'string|min:8|regex:/^(?=.*[a-z])(?=.*[\d\s\W]).{8,}$/',
-            'confirmPassword' => 'string|min:8|same:newPassword',
+            'current_password' => 'string|min:8|current_password',
+            'password' => 'string|min:8|confirmed',
+            'password_confirmation' => 'string|min:8|same:password',
         ]);
+        $profile = '';
 
         if (!empty($validate['phone'])) {
             $user->phone = $validate['phone'];
+            $user->save();
+            $profile = 'Phone-number Updated';
+        }
+        if (!empty($validate['current_password'])) {
+            $user->update([
+                'password' => Hash::make($request->password),
+            ]);
+            $profile = 'Password Updated';
         }
 
-        if (!empty($validate['currentPassword'])) {
-            if (Hash::make((string)$validate['currentPassword']) === (string)$user->password) {
-                if ($validate['newPassword'] === $validate['confirmPassword']) {
-                    $user->password = Hash::make($validate['newPassword']);
-                }
-            }
-        }
-
-        $user->save();
-        return redirect('/profile')->with('success', 'Profile updated!');
+        return redirect('/profile')->with('success', $profile);
     }
 
     /**

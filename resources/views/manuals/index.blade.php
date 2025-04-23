@@ -30,7 +30,7 @@
                     <thead>
                     <tr>
                         <th>Manuals</th>
-                        <th>No of Folders</th>
+{{--                        <th>No of Folders</th>--}}
                         @can('destroy-manual')
                             <th>Action</th>
                         @endcan
@@ -40,7 +40,7 @@
                     @can('view-manual')
                         @foreach($Manuals as $manual)
                             @php
-                                $manualCount = \App\Models\ManualsItem::where('manual_uid', $manual->mid)->count();
+                                $manualCount = \App\Models\ManualsItem::where('manual_uid', $manual->mid)->get();
 
                             @endphp
                             @can('access-manual-' . $manual->name)
@@ -54,7 +54,7 @@
                                         <td>{{ $manual->name }}
                                         </td>
                                     @endif
-                                    <td>{{ $manualCount }}</td>
+{{--                                    <td>{{ $manualCount->item->count() }}</td>--}}
                                     @can('destroy-manual')
                                         <td>
                                             <div class="dropdown">

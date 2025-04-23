@@ -95,7 +95,7 @@
                                             <input
                                                 class="form-control"
                                                 type="password"
-                                                name="currentPassword"
+                                                name="current_password"
                                                 id="currentPassword"
                                                 placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"/>
                                             <label for="currentPassword">Current Password</label>
@@ -114,7 +114,7 @@
                                                 class="form-control"
                                                 type="password"
                                                 id="newPassword"
-                                                name="newPassword"
+                                                name="password"
                                                 placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"/>
                                             <label for="newPassword">New Password</label>
                                         </div>
@@ -129,7 +129,7 @@
                                             <input
                                                 class="form-control"
                                                 type="password"
-                                                name="confirmPassword"
+                                                name="password_confirmation"
                                                 id="confirmPassword"
                                                 placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"/>
                                             <label for="confirmPassword">Confirm New Password</label>

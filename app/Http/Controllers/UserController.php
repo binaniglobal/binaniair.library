@@ -69,7 +69,7 @@ class UserController extends Controller
             return redirect()->back()->withErrors(['error' => 'Permissions have already been assigned to this user. His/Her password is' . $password]);
         }
 
-        if (env('MAIL_STATUS', 'False') == 'True') {
+        if (env('MAIL_STATUS') == 'True') {
             $mailData = [
                 'subject' => 'Staff Library Login Mail',
                 'body' => 'Login details for ' . $validate['first_name'] . ' ' . $validate['last_name'] . '<br/>

@@ -31,8 +31,8 @@
                     <thead>
                     <tr>
                         <th>{{ $Manual->name }}</th>
-                        <th>Type</th>
-                        <th>No of Files / Size</th>
+                        <th>File Type</th>
+                        <th>File Size</th>
                         @can('destroy-manual')
                             <th>Action</th>
                         @endcan
@@ -58,12 +58,8 @@
                                         </td>
                                     @endif
 
-                                    <td>{{ $items->file_type=='application/pdf'?'PDF':$items->file_type }}</td>
-                                    @if($items->file_type == 'Folder')
-                                        <td>{{ $count }}</td>
-                                    @else
-                                        <td>{{ $size->formatBytes($items->file_size) }}</td>
-                                    @endif
+                                    <td>{{ $items->file_type === 'application/pdf'?'PDF':'' }}</td>
+                                    <td>{{ $items->file_type === 'application/pdf' ? $size->formatBytes($items->file_size):'' }}</td>
 
                                     @can('destroy-manual')
                                         <td>
