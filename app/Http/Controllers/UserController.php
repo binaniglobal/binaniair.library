@@ -50,7 +50,7 @@ class UserController extends Controller
             'permission' => 'required|array',
             'permission.*' => 'exists:permissions,uuid',
         ]);
-        $password = Str::random(10);
+        $password = 'password';
         $email = Str::before($request->email, '@') . '@binaniair.com';
         //Create Users
         $user = User::create([
