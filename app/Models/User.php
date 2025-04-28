@@ -21,9 +21,9 @@ class User extends Authenticatable implements MustVerifyEmail
     protected static function boot(): void
     {
         parent::boot();
-//        static::creating(function ($user) {
-//            $user->uuid = Str::uuid();
-//        });
+        static::creating(function ($user) {
+            $user->uuid = Str::uuid();
+        });
 
         static::deleting(function ($user) {
             // Remove roles
