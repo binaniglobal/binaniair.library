@@ -69,7 +69,7 @@
                 class="img-fluid z-1"
                 width="290"/>
             <div>
-                <a href="{{ route('manual.index') }}" class="btn btn-primary text-center my-5">Return back</a>
+                <a href="{{ route('manual.index') }}" class="btn btn-primary text-center my-5">Return to manuals</a>
             </div>
         </div>
     </div>
