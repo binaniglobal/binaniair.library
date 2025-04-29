@@ -30,7 +30,6 @@ class HomeController extends Controller
         } else {
             return view('manuals.index');
         }
-
     }
 
     function downloadSubManuals($fileName)

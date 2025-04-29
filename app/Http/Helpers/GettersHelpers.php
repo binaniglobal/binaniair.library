@@ -8,19 +8,14 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Permission as Permission;
-
-
 function countManualItemsById($manual_item_id)
 {
     return ManualItemContent::where('manual_items_uid', $manual_item_id)->count();
 }
-
-
 function getManualById($id)
 {
     return Manuals::where('mid', $id)->first();
 }
-
 
 function getManualItemById($manual_uid, $manual_item_uid)
 {

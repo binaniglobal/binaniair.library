@@ -69,7 +69,7 @@ Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian|user', '
     //End Manual Items Contents
 });
 
-Route::middleware(['auth', 'role:super-admin'])->group(function () {
+Route::middleware(['auth', 'role:super-admin', 'redirect'])->group(function () {
 
     Route::get('/maintenance/down', function () {
         Artisan::call('down');
@@ -94,7 +94,7 @@ Route::middleware(['auth', 'role:super-admin'])->group(function () {
     //End Add Permissions
 });
 
-Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian'])->group(function () {
+Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian', 'redirect'])->group(function () {
 
 
     //Add Users

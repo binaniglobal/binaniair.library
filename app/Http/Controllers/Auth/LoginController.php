@@ -32,7 +32,7 @@ class LoginController extends Controller
     /**
      * Create a new controller instance.
      *
-     * @return void
+     * @return string
      */
     public function __construct()
     {
@@ -42,9 +42,9 @@ class LoginController extends Controller
     protected function redirectTo()
     {
         if (Auth::user()->hasPermissionTo('view-home')) {
-            return '/home';
+            return redirect('/home');
         } else {
-            return '/manuals';
+            return redirect('/manuals');
         }
     }
 
