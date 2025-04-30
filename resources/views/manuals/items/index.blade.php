@@ -89,7 +89,7 @@
     @push('scripts')
         <script>
             $("#dt-responsive").DataTable({
-                "responsive": true, "lengthChange": false, "autoWidth": false,
+                "responsive": true, "lengthChange": false, "autoWidth": false, ordering: false,
                 buttons: [
                     'pageLength'
                     @can('create-manual')

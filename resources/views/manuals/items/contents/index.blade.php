@@ -44,7 +44,7 @@
                     @can('view-manual')
                         @foreach($Items as $items)
                             @php
-                                $count = ManualItemContent::where('manual_items_uid', $items->miid)->count();
+//                                $count = ManualItemContent::where('manual_items_uid', $items->miid)->count();
                                 $parentManual = Manuals::where('mid', $items->manual_uid)->first();
                             @endphp
                             @can('access-manual-'.$parentManual->name.'.'. $Manual->name.'.'.$items->name)
@@ -83,7 +83,7 @@
     @push('scripts')
         <script>
             $("#dt-responsive").DataTable({
-                "responsive": true, "lengthChange": false, "autoWidth": false,
+                "responsive": true, "lengthChange": false, "autoWidth": false, ordering: false,
                 buttons: [
                     'pageLength',
                         @can('create-manual')
