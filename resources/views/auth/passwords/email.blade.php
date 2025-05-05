@@ -24,8 +24,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&ampdisplay=swap"
-        rel="stylesheet"/>
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&ampdisplay=swap"
+            rel="stylesheet"/>
 
     <!-- Icons -->
     <link rel="stylesheet" href="{{ asset('storage/assets/vendor/fonts/materialdesignicons.css') }}"/>
@@ -35,7 +35,8 @@
     <link rel="stylesheet" href="{{ asset('storage/assets/vendor/libs/node-waves/node-waves.css') }}"/>
 
     <!-- Core CSS -->
-    <link rel="stylesheet" href="{{ asset('storage/assets/vendor/css/rtl/core.css') }}" class="template-customizer-core-css"/>
+    <link rel="stylesheet" href="{{ asset('storage/assets/vendor/css/rtl/core.css') }}"
+          class="template-customizer-core-css"/>
     <link rel="stylesheet" href="{{ asset('storage/assets/vendor/css/rtl/theme-default.css') }}"
           class="template-customizer-theme-css"/>
     {{--    <link rel="stylesheet" href="storage/assets/css/demo.css" />--}}
@@ -116,28 +117,28 @@
 
 <!-- Core JS -->
 <!-- build:js storage/assets/vendor/js/core.js -->
-<script src="storage/assets/vendor/libs/jquery/jquery.js"></script>
-<script src="storage/assets/vendor/libs/popper/popper.js"></script>
-<script src="storage/assets/vendor/js/bootstrap.js"></script>
-<script src="storage/assets/vendor/libs/node-waves/node-waves.js"></script>
-<script src="storage/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-<script src="storage/assets/vendor/libs/hammer/hammer.js"></script>
-<script src="storage/assets/vendor/libs/i18n/i18n.js"></script>
-<script src="storage/assets/vendor/libs/typeahead-js/typeahead.js"></script>
-<script src="storage/assets/vendor/js/menu.js"></script>
+<script src="{{ asset('storage/assets/vendor/libs/jquery/jquery.js') }}"></script>
+<script src="{{ asset('storage/assets/vendor/libs/popper/popper.js') }}"></script>
+<script src="{{ asset('storage/assets/vendor/js/bootstrap.js') }}"></script>
+<script src="{{ asset('storage/assets/vendor/libs/node-waves/node-waves.js') }}"></script>
+<script src="{{ asset('storage/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
+<script src="{{ asset('storage/assets/vendor/libs/hammer/hammer.js') }}"></script>
+<script src="{{ asset('storage/assets/vendor/libs/i18n/i18n.js') }}"></script>
+<script src="{{ asset('storage/assets/vendor/libs/typeahead-js/typeahead.js') }}"></script>
+<script src="{{ asset('storage/assets/vendor/js/menu.js') }}"></script>
 
 <!-- endbuild -->
 
 <!-- Vendors JS -->
-<script src="storage/assets/vendor/libs/@form-validation/popular.js"></script>
-<script src="storage/assets/vendor/libs/@form-validation/bootstrap5.js"></script>
-<script src="storage/assets/vendor/libs/@form-validation/auto-focus.js"></script>
+<script src="{{ asset('storage/assets/vendor/libs/@form-validation/popular.js') }}"></script>
+<script src="{{ asset('storage/assets/vendor/libs/@form-validation/bootstrap5.js') }}"></script>
+<script src="{{ asset('storage/assets/vendor/libs/@form-validation/auto-focus.js') }}"></script>
 
 <!-- Main JS -->
-<script src="storage/assets/js/main.js"></script>
+<script src="{{ asset('storage/assets/js/main.js') }}"></script>
 
 <!-- Page JS -->
-<script src="storage/assets/js/pages-auth.js"></script>
+<script src="{{ asset('storage/assets/js/pages-auth.js') }}"></script>
 </body>
 </html>
 

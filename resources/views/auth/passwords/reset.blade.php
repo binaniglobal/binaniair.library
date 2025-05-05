@@ -36,7 +36,8 @@
     <link rel="stylesheet" href="{{ asset('storage/assets/vendor/libs/node-waves/node-waves.css') }}"/>
 
     <!-- Core CSS -->
-    <link rel="stylesheet" href="{{ asset('storage/assets/vendor/css/rtl/core.css') }}" class="template-customizer-core-css"/>
+    <link rel="stylesheet" href="{{ asset('storage/assets/vendor/css/rtl/core.css') }}"
+          class="template-customizer-core-css"/>
     <link rel="stylesheet" href="{{ asset('storage/assets/vendor/css/rtl/theme-default.css') }}"
           class="template-customizer-theme-css"/>
     {{--    <link rel="stylesheet" href="storage/assets/css/demo.css" />--}}
@@ -132,34 +133,35 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
+        <!-- / Content -->
 
-    <!-- / Content -->
+        <!-- Core JS -->
+        <!-- build:js storage/assets/vendor/js/core.js -->
+        <script src="{{ asset('storage/assets/vendor/libs/jquery/jquery.js') }}"></script>
+        <script src="{{ asset('storage/assets/vendor/libs/popper/popper.js') }}"></script>
+        <script src="{{ asset('storage/assets/vendor/js/bootstrap.js') }}"></script>
+        <script src="{{ asset('storage/assets/vendor/libs/node-waves/node-waves.js') }}"></script>
+        <script src="{{ asset('storage/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
+        <script src="{{ asset('storage/assets/vendor/libs/hammer/hammer.js') }}"></script>
+        <script src="{{ asset('storage/assets/vendor/libs/i18n/i18n.js') }}"></script>
+        <script src="{{ asset('storage/assets/vendor/libs/typeahead-js/typeahead.js') }}"></script>
+        <script src="{{ asset('storage/assets/vendor/js/menu.js') }}"></script>
 
-    <!-- Core JS -->
-    <!-- build:js storage/assets/vendor/js/core.js -->
-    <script src="storage/assets/vendor/libs/jquery/jquery.js"></script>
-    <script src="storage/assets/vendor/libs/popper/popper.js"></script>
-    <script src="storage/assets/vendor/js/bootstrap.js"></script>
-    <script src="storage/assets/vendor/libs/node-waves/node-waves.js"></script>
-    <script src="storage/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-    <script src="storage/assets/vendor/libs/hammer/hammer.js"></script>
-    <script src="storage/assets/vendor/libs/i18n/i18n.js"></script>
-    <script src="storage/assets/vendor/libs/typeahead-js/typeahead.js"></script>
-    <script src="storage/assets/vendor/js/menu.js"></script>
+        <!-- endbuild -->
 
-    <!-- endbuild -->
+        <!-- Vendors JS -->
+        <script src="{{ asset('storage/assets/vendor/libs/@form-validation/popular.js') }}"></script>
+        <script src="{{ asset('storage/assets/vendor/libs/@form-validation/bootstrap5.js') }}"></script>
+        <script src="{{ asset('storage/assets/vendor/libs/@form-validation/auto-focus.js') }}"></script>
 
-    <!-- Vendors JS -->
-    <script src="storage/assets/vendor/libs/@form-validation/popular.js"></script>
-    <script src="storage/assets/vendor/libs/@form-validation/bootstrap5.js"></script>
-    <script src="storage/assets/vendor/libs/@form-validation/auto-focus.js"></script>
+        <!-- Main JS -->
+        <script src="{{ asset('storage/assets/js/main.js') }}"></script>
 
-    <!-- Main JS -->
-    <script src="storage/assets/js/main.js"></script>
-
-    <!-- Page JS -->
-    <script src="storage/assets/js/pages-auth.js"></script>
+        <!-- Page JS -->
+        <script src="{{ asset('storage/assets/js/pages-auth.js') }}"></script>
 </body>
 </html>
 
