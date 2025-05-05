@@ -46,7 +46,6 @@
                             @can('access-manual-' . $manual->name)
                                 <tr>
                                     @if($manual->type == 0)
-
                                         <td>
                                             <a href="{{ route('manual.items.index', $manual->mid) }}">{{ $manual->name }}</a>
                                         </td>

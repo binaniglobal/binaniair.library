@@ -34,14 +34,6 @@
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <label class="col-sm-3 col-form-label" for="last_name">Last Name</label>
-                            <div class="col-sm-9">
-                                <input type="text" id="last_name" name="last_name" class="form-control"
-                                       value="{{ old('last_name') ? old('last_name'):'' }}"
-                                       placeholder="Doe"/>
-                            </div>
-                        </div>
-                        <div class="row mb-3">
                             <label class="col-sm-3 col-form-label" for="email">Email</label>
                             <div class="col-sm-9">
                                 <div class="input-group input-group-merge">
@@ -53,14 +45,14 @@
                                         placeholder="info"
                                         aria-label="info"
                                         aria-describedby="email"/>
-                                    <span class="input-group-text" id="email">@binaniair.com</span>
+                                    <span class="input-group-text" id="email">{{ getDomainName() }}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="row mb-3">
                             <label class="col-sm-3 col-form-label" for="last_name">Phone Number</label>
                             <div class="col-sm-9">
-                                <input type="tel" id="phone" name="phone" class="form-control" value="{{ old('email') ? old('email'):'' }}"
+                                <input type="tel" id="phone" name="phone" class="form-control" value="{{ old('phone') ? old('phone'):'' }}"
                                        placeholder="+23481000000"/>
                             </div>
                         </div>
