@@ -37,7 +37,7 @@ class HomeController extends Controller
             $fileContent = Storage::disk('privateSubManual')->get($fileName);
             $mimeType = Storage::disk('privateSubManual')->mimeType($fileName);
 
-            if ($fileSize > 104857600) { // 100MB in bytes
+            if ($fileSize >= 104857600) { // 100MB in bytes
                 return response($fileContent, 200)
                     ->header('Content-Type', $mimeType)
                     ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
@@ -57,7 +57,7 @@ class HomeController extends Controller
             $fileSize = Storage::disk('privateSubManualContent')->size($fileName);
             $fileContent = Storage::disk('privateSubManualContent')->get($fileName);
             $mimeType = Storage::disk('privateSubManualContent')->mimeType($fileName);
-            if ($fileSize > 104857600) { // 100MB in bytes
+            if ($fileSize >= 104857600) { // 100MB in bytes
                 return response($fileContent, 200)
                     ->header('Content-Type', $mimeType)
                     ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
