@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\ManualItemContent;
 use App\Models\ManualsItem;
+use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use App\Models\Permission as Permission;
 
 class ManualItemContentController extends Controller
 {
@@ -29,17 +29,17 @@ class ManualItemContentController extends Controller
         $request->validate([
             'manual_name' => 'string|unique:manuals_item_contents,name',
             'file' => 'array|max:5', // Limit to 5 uploads
-            'file.*' => ['file','mimes:pdf','max:' . env('FILE_SIZE', 40960)], // Validation rules for each file
+            'file.*' => ['file', 'mimes:pdf', 'max:'.env('FILE_SIZE', 40960)], // Validation rules for each file
         ]);
         $uploadedFiles = $request->file('file');
 
-        if (!$uploadedFiles || !is_array($uploadedFiles)) {
+        if (! $uploadedFiles || ! is_array($uploadedFiles)) {
             return back()->with('error', 'No files were uploaded.');
         }
 
         foreach ($uploadedFiles as $file) {
             $fileName = $file->getClientOriginalName();
-            $fileNameUnique = Str::random(4) . '_' . $fileName;
+            $fileNameUnique = Str::random(4).'_'.$fileName;
             $path = Storage::disk('privateSubManualContent')->putFileAs('', $file, $fileNameUnique);
             $fileSize = $file->getSize(); // Get file size in bytes
             $mimeType = $file->getClientMimeType(); // Get MIME type
@@ -57,23 +57,25 @@ class ManualItemContentController extends Controller
                     'name' => $customName,
                     'link' => $path,
                     'file_size' => $fileSize, // Size in byte
-                    'file_type' => $mimeType, //Application type
+                    'file_type' => $mimeType, // Application type
                 ];
-                if (!empty($fileData)) {
+                if (! empty($fileData)) {
                     $manualItemContent::create($fileData);
                     $permissionName = "access-manual-{$getParentManual->name}.{$getItemManual->name}.{$customName}";
                     // Create permission
                     $permission = Permission::firstOrCreate(['name' => $permissionName]);
-                    if (auth()->check() && !auth()->user()->hasPermissionTo($permission)) {
+                    if (auth()->check() && ! auth()->user()->hasPermissionTo($permission)) {
                         auth()->user()->givePermissionTo($permission);
                     }
                 } else {
                     Storage::disk('privateSubManualContent')->delete($path);
                 }
+
                 return redirect(route('manual.items.content.index', $request->id))->with('success', 'File uploaded Successfully');
             } catch (\Exception $exception) {
-                Log::log('error', 'Error Message: ' . $exception->getMessage());
+                Log::log('error', 'Error Message: '.$exception->getMessage());
                 Storage::disk('privateSubManualContent')->delete($path);
+
                 return redirect(route('manual.index'));
             }
         }
@@ -114,13 +116,12 @@ class ManualItemContentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-
     public function destroy($id, $ids, ManualItemContent $manualItemContent)
     {
         if (Auth::user()->can('can destroy')) {
             $path = $manualItemContent::where('micd', $ids)->first();
-            if (!empty($path['file_type']) && $path['file_type'] != 'Folder') {
-                if (!empty($path['link'])) {
+            if (! empty($path['file_type']) && $path['file_type'] != 'Folder') {
+                if (! empty($path['link'])) {
                     if (Storage::disk('privateSubManualContent')->exists($path['link'])) {
 
                         $getParentManual = getManualById($path['manual_uid']);
@@ -132,7 +133,7 @@ class ManualItemContentController extends Controller
                         Storage::disk('privateSubManualContent')->delete($path['link']);
                         $manualItemContent::where('micd', $ids)->delete();
 
-                        return redirect(route('manual.items.content.index', $id, $ids))->with('success', $path['name'] . ' File Deleted');
+                        return redirect(route('manual.items.content.index', $id, $ids))->with('success', $path['name'].' File Deleted');
                     } else {
                         return response()->json(['error' => 'File not found'], 404);
                     }
@@ -141,13 +142,15 @@ class ManualItemContentController extends Controller
                     if (env('MAIL_STATUS', 'False') == 'True') {
 
                     }
-                    return redirect(route('manual.items.content.index', $id, $ids))->with('success', $path['name'] . ' File Deleted');
+
+                    return redirect(route('manual.items.content.index', $id, $ids))->with('success', $path['name'].' File Deleted');
                 }
             }
         } else {
             if (env('MAIL_STATUS', 'False') == 'True') {
 
             }
+
             return response()->json(['error' => 'You do not have permission to delete files'], 404);
         }
     }

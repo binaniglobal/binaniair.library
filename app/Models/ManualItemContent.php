@@ -12,8 +12,11 @@ class ManualItemContent extends Model
     use HasFactory, HasUuids;
 
     protected $fillable = ['micd', 'manual_uid', 'manual_items_uid', 'name', 'link', 'file_type', 'file_size'];
+
     protected $primaryKey = 'micd'; // Set 'micd' as the primary key
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     public static function boot()

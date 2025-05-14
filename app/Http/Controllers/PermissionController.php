@@ -32,6 +32,7 @@ class PermissionController extends Controller
             'name' => 'required|unique:permissions|max:255',
         ]);
         Permission::create(['name' => $validatedData['name']]);
+
         return redirect()->route('permissions')->with(['success' => 'Permission created successfully']);
     }
 

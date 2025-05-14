@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -33,9 +32,9 @@ class ProductionSeeder extends Seeder
         foreach ($userSuper as $userData) {
             $user = User::create($userData); // Assumes you are using the User model.
             $user->assignRole('super-admin');
-//            if (!$user->hasPermissionTo(['view-manual'])) {
-                $user->givePermissionTo(['view-manual']);
-//            }
+            //            if (!$user->hasPermissionTo(['view-manual'])) {
+            $user->givePermissionTo(['view-manual']);
+            //            }
         }
 
         $userSuperAdmin = [
@@ -51,14 +50,14 @@ class ProductionSeeder extends Seeder
                 'remember_token' => Str::random(60),
                 'created_at' => '2024-05-24 07:34:24',
                 'updated_at' => '2024-05-24 07:34:24',
-            ]
+            ],
         ];
         foreach ($userSuperAdmin as $userData) {
             $user = User::create($userData); // Assumes you are using the User model.
             $user->assignRole('SuperAdmin');
-//            if (!$user->hasPermissionTo(['view-manual'])) {
-                $user->givePermissionTo(['view-manual']);
-//            }
+            //            if (!$user->hasPermissionTo(['view-manual'])) {
+            $user->givePermissionTo(['view-manual']);
+            //            }
         }
 
         $userAdmin = [
@@ -92,9 +91,9 @@ class ProductionSeeder extends Seeder
         foreach ($userAdmin as $userData) {
             $user = User::create($userData); // Assumes you are using the User model.
             $user->assignRole('admin');
-//            if (!$user->hasPermissionTo(['view-manual'])) {
-                $user->givePermissionTo(['view-manual']);
-//            }
+            //            if (!$user->hasPermissionTo(['view-manual'])) {
+            $user->givePermissionTo(['view-manual']);
+            //            }
         }
 
         $users = [
@@ -388,9 +387,9 @@ class ProductionSeeder extends Seeder
         foreach ($users as $userData) {
             $user = User::create($userData); // Assumes you are using the User model.
             $user->assignRole('user');
-//            if (!$user->hasPermissionTo(['view-manual'])) {
-                $user->givePermissionTo(['view-manual']);
-//            }
+            //            if (!$user->hasPermissionTo(['view-manual'])) {
+            $user->givePermissionTo(['view-manual']);
+            //            }
         }
     }
 }

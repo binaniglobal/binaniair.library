@@ -111,6 +111,6 @@ return [
     */
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
-//    'password_confirmation_expires' => 60, // In seconds
+    //    'password_confirmation_expires' => 60, // In seconds
 
 ];

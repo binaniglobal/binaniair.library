@@ -10,9 +10,13 @@ use Illuminate\Support\Str;
 class ManualsItem extends Model
 {
     use HasFactory, HasUuids;
+
     protected $fillable = ['miid', 'manual_uid', 'name', 'link', 'file_type', 'file_size'];
+
     protected $primaryKey = 'miid'; // Set 'miid' as the primary key
+
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     public static function boot()
@@ -33,5 +37,4 @@ class ManualsItem extends Model
     {
         return $this->hasMany(ManualItemContent::class, 'manual_items_uid', 'miid');
     }
-
 }

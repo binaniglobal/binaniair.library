@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 
-
 class UserController extends Controller
 {
     /**
@@ -26,14 +25,16 @@ class UserController extends Controller
     public function noOfUsers()
     {
         $count = User::withoutRole('super-admin')->count();
+
         return $count;
     }
 
     public function getUserName($id)
     {
-        //Get the name of the user
+        // Get the name of the user
         $user = User::where('uuid', $id)->first();
-        return $user->name . ' ' . $user->surname;
+
+        return $user->name.' '.$user->surname;
     }
 
     /**
@@ -51,14 +52,14 @@ class UserController extends Controller
             'permission.*' => 'exists:permissions,uuid',
         ]);
         $password = 'password';
-        $email = Str::before($request->email, '@') . '@binaniair.com';
-        //Create Users
+        $email = Str::before($request->email, '@').'@binaniair.com';
+        // Create Users
         $user = User::create([
             'name' => $request->first_name,
             'surname' => $request->last_name,
             'email' => $email,
             'phone' => $request->phone,
-            'password' => Hash::make($password)
+            'password' => Hash::make($password),
         ]);
         $user->assignRole($validate['role']);
         $permissions = Permission::whereIn('uuid', $validate['permission'])->pluck('name')->toArray();
@@ -66,24 +67,25 @@ class UserController extends Controller
         if ($user->permissions->isEmpty()) {
             $user->syncPermissions($permissions);
         } else {
-            return redirect()->back()->withErrors(['error' => 'Permissions have already been assigned to this user. His/Her password is' . $password]);
+            return redirect()->back()->withErrors(['error' => 'Permissions have already been assigned to this user. His/Her password is'.$password]);
         }
 
         if (env('MAIL_STATUS') == 'True') {
             $mailData = [
                 'subject' => 'Staff Library Login Mail',
-                'body' => 'Login details for ' . $validate['first_name'] . ' ' . $validate['last_name'] . '<br/>
-            Username/Email Address: ' . $email . '<br/>
-            Password: ' . $password . '<br/>
+                'body' => 'Login details for '.$validate['first_name'].' '.$validate['last_name'].'<br/>
+            Username/Email Address: '.$email.'<br/>
+            Password: '.$password.'<br/>
             Lets start using our library system. Cheers
             ',
                 'email' => $email,
                 'password' => $password,
-                'name' => $validate['first_name'] . ' ' . $validate['last_name']
+                'name' => $validate['first_name'].' '.$validate['last_name'],
             ];
             Mail::to($email)->send(new UserAccountMail($mailData));
         }
-        return redirect(route('users.index'))->with('success', 'User Created Successfully. Please inform the user to check his/her mail for the login details. Password is: ' . $password . '.');
+
+        return redirect(route('users.index'))->with('success', 'User Created Successfully. Please inform the user to check his/her mail for the login details. Password is: '.$password.'.');
     }
 
     /**
@@ -124,7 +126,7 @@ class UserController extends Controller
             ->orWhereIn('name', $authUser->getPermissionNames()->toArray())
             ->get();
 
-        return view('users.add', ['Roles' => $roles, 'Permissions' => $permissions /*Permission::where('name', 'not like', 'can %')->get()*/]);
+        return view('users.add', ['Roles' => $roles, 'Permissions' => $permissions /* Permission::where('name', 'not like', 'can %')->get() */]);
     }
 
     /**
@@ -149,7 +151,7 @@ class UserController extends Controller
                 'generate-report',
                 'reset-password',
                 'issue-manuals',
-                'view-home'
+                'view-home',
             ];
             $Permissions = Permission::whereNotIn('name', $data)->orWhereIn('name', $authUser->getPermissionNames())->get();
         }
@@ -205,6 +207,7 @@ class UserController extends Controller
         // Update roles and permissions
         $user->syncRoles($role);
         $user->syncPermissions($request->permissions ?? [$permissions]);
+
         return redirect()->route('users.index')->with('success', 'User information updated successfully.');
     }
 
@@ -215,13 +218,14 @@ class UserController extends Controller
     {
         $user = User::where('uuid', $id)->first();
 
-        //To substitute if the parent boot delete function in the User Model does not work again.
-        //To remove the roles and permission of the user to be deleted.
-//        $user->syncRoles([]);
-//        $user->syncPermissions([]);
-//
-//        // Delete the user
+        // To substitute if the parent boot delete function in the User Model does not work again.
+        // To remove the roles and permission of the user to be deleted.
+        //        $user->syncRoles([]);
+        //        $user->syncPermissions([]);
+        //
+        //        // Delete the user
         $user->delete();
+
         return redirect()->route('users.index')->with('success', 'The user has been deleted successfully.');
     }
 }

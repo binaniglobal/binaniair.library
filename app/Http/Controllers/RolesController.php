@@ -12,7 +12,7 @@ class RolesController extends Controller
      */
     public function index(Role $role)
     {
-        return view('settings.roles.index', ['Role' => $role::where('name', 'not like','super-admin')->get()]);
+        return view('settings.roles.index', ['Role' => $role::where('name', 'not like', 'super-admin')->get()]);
     }
 
     /**
@@ -31,10 +31,11 @@ class RolesController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|unique:roles|max:10',
         ]);
-        Role::create(['name' => $validatedData['name'], 'guard_name'=>'web']);
-        if(env('MAIL_STATUS','False') == 'True') {
+        Role::create(['name' => $validatedData['name'], 'guard_name' => 'web']);
+        if (env('MAIL_STATUS', 'False') == 'True') {
 
         }
+
         return redirect()->route('roles');
     }
 

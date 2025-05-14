@@ -17,8 +17,10 @@ class IssuingBooksController extends Controller
         return view('issue.index', ['Issue' => IssuingBooks::all()]);
     }
 
-    public function noOfIssuingBooks(){
+    public function noOfIssuingBooks()
+    {
         $count = IssuingBooks::all();
+
         return $count->count();
     }
 

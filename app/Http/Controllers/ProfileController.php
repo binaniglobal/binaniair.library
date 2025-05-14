@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -63,12 +62,12 @@ class ProfileController extends Controller
         ]);
         $profile = '';
 
-        if (!empty($validate['phone'])) {
+        if (! empty($validate['phone'])) {
             $user->phone = $validate['phone'];
             $user->save();
             $profile = 'Phone-number Updated';
         }
-        if (!empty($validate['current_password'])) {
+        if (! empty($validate['current_password'])) {
             $user->update([
                 'password' => Hash::make($request->password),
             ]);

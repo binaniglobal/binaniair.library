@@ -1,8 +1,6 @@
 <?php
 
-
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
-
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,8 +23,9 @@ Route::post('/email/verification-notification', function (Request $request) {
 
 Route::post('/email/verification-notification', function (Request $request) {
     $user = $request->user();
-    if (!empty($user)) {
+    if (! empty($user)) {
         $user->sendEmailVerificationNotification();
     }
+
     return back()->with('message', 'Verification link resent!');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.resend');

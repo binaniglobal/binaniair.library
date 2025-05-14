@@ -17,7 +17,13 @@ class HomeController extends Controller
         $this->middleware('auth');
     }
 
+<<<<<<< Updated upstream
 
+=======
+    /**
+     * Show the application dashboard.
+     */
+>>>>>>> Stashed changes
     public function index()
     {
         if (Auth::user()->hasPermissionTo('view-home')) {
@@ -27,57 +33,24 @@ class HomeController extends Controller
         }
     }
 
-    function downloadSubManuals($fileName)
-    {
-        if (Storage::disk('privateSubManual')->exists($fileName)) {
-            $fileContent = Storage::disk('privateSubManual')->get($fileName);
-            $mimeType = Storage::disk('privateSubManual')->mimeType($fileName);
-
-            // Get the file size in bytes
-            $fileSize = Storage::disk('privateSubManual')->size($fileName);
-
-            // Define the size threshold (100MB in bytes)
-            $sizeThreshold = 100 * 1024 * 1024; // 100 MB
-
-            // Determine the Content-Disposition header
-            $disposition = ($fileSize > $sizeThreshold) ? 'attachment' : 'inline';
-
-            if ($fileSize > $sizeThreshold) {
-                return Storage::disk('privateSubManual')->download($fileName);
-            } else {
-                return Response::make($fileContent, 200, [
-                    'Content-Type' => $mimeType,
-                    'Content-Disposition' => $disposition.'; filename="' . $fileName . '"',
-                ]);
+        function downloadSubManuals($fileName)
+        {
+            if (Storage::disk('privateSubManual')->exists($fileName)) {
+                $fileContent = Storage::disk('privateSubManual')->get($fileName);
+                $mimeType = Storage::disk('privateSubManual')->mimeType($fileName);
+                return response($fileContent, 200)->header('Content-Type', $mimeType)->header('Content-Disposition', 'inline');
             }
+            return response()->json(['error' => 'File not found'], 404);
         }
-        return response()->json(['error' => 'File not found'], 404);
-    }
 
-    function downloadSubManualsContent($fileName)
-    {
-        if (Storage::disk('privateSubManualContent')->exists($fileName)) {
-            $fileContent = Storage::disk('privateSubManualContent')->get($fileName);
-            $mimeType = Storage::disk('privateSubManualContent')->mimeType($fileName);
-
-            // Get the file size in bytes
-            $fileSize = Storage::disk('privateSubManualContent')->size($fileName);
-
-            // Define the size threshold (100MB in bytes)
-            $sizeThreshold = 100 * 1024 * 1024; // 100 MB
-
-            // Determine the Content-Disposition header
-            $disposition = ($fileSize > $sizeThreshold) ? 'attachment' : 'inline';
-
-            if ($fileSize > $sizeThreshold) {
-                return Storage::disk('privateSubManualContent')->download($fileName);
-            } else {
-                return Response::make($fileContent, 200, [
-                    'Content-Type' => $mimeType,
-                    'Content-Disposition' => $disposition.'; filename="' . $fileName . '"',
-                ]);
+        function downloadSubManualsContent($fileName)
+        {
+            if (Storage::disk('privateSubManualContent')->exists($fileName)) {
+                $fileContent = Storage::disk('privateSubManualContent')->get($fileName);
+                $mimeType = Storage::disk('privateSubManualContent')->mimeType($fileName);
+                return response($fileContent, 200)->header('Content-Type', $mimeType)->header('Content-Disposition', 'inline');
             }
+          
+            return response()->json(['error' => 'File not found'], 404);
         }
-        return response()->json(['error' => 'File not found'], 404);
-    }
 }

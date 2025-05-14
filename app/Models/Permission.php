@@ -12,10 +12,12 @@ class Permission extends SpatiePermission
     use HasFactory, HasUuids;
 
     protected $fillable = ['uuid', 'name', 'guard_name'];
-    protected $primaryKey = 'uuid';
-    protected $keyType = 'string';
-    public $incrementing = false;
 
+    protected $primaryKey = 'uuid';
+
+    protected $keyType = 'string';
+
+    public $incrementing = false;
 
     protected static function boot(): void
     {

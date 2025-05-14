@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ManualItemContent;
 use App\Models\Manuals;
-use App\Models\ManualsItem;
+use App\Models\Permission;
 use Illuminate\Http\Request;
-use App\Models\Permission as Permission;
 
 class ManualsController extends Controller
 {
@@ -18,11 +16,10 @@ class ManualsController extends Controller
         return view('manuals.index', ['Manuals' => Manuals::all()]);
     }
 
-
-
     public function getManualName($id)
     {
         $manual = Manuals::where('mid', $id)->first();
+
         return $manual->name;
     }
 
@@ -36,16 +33,17 @@ class ManualsController extends Controller
         ]);
 
         $manual = Manuals::create([
-            'name' => $request->manual_name
+            'name' => $request->manual_name,
         ]);
         if ($manual) {
             $permissionName = "access-manual-{$request->manual_name}";
             // Create permission
             $permission = Permission::firstOrCreate(['name' => $permissionName]);
-            if (auth()->check() && !auth()->user()->hasPermissionTo($permission)) {
+            if (auth()->check() && ! auth()->user()->hasPermissionTo($permission)) {
                 auth()->user()->givePermissionTo($permission);
             }
         }
+
         return redirect(route('manual.index'))->with('success', 'Folder Created');
     }
 
@@ -87,6 +85,7 @@ class ManualsController extends Controller
     public function destroy($id)
     {
         deleteManualItemRecursively($id);
+
         return redirect(route('manual.index', $id))->with('success', 'Manual and its contents are deleted');
     }
 }

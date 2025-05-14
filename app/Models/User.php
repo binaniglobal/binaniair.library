@@ -12,10 +12,12 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, HasRoles, HasUuids;
+    use HasFactory, HasRoles, HasUuids, Notifiable;
 
     protected $keyType = 'string';
+
     public $incrementing = false;
+
     protected $primaryKey = 'uuid';
 
     protected static function boot(): void
@@ -70,5 +72,4 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
-
 }

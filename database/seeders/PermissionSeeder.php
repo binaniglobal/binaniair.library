@@ -7,10 +7,7 @@ use App\Models\Manuals;
 use App\Models\ManualsItem;
 use App\Models\Permission;
 use App\Models\Role;
-use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class PermissionSeeder extends Seeder
 {
@@ -21,7 +18,7 @@ class PermissionSeeder extends Seeder
 
     public function run(): void
     {
-        //Works both for Manual and their Items
+        // Works both for Manual and their Items
         Permission::create(['name' => 'create-manual']);
         Permission::create(['name' => 'view-manual']);
         Permission::create(['name' => 'edit-manual']);
@@ -52,21 +49,20 @@ class PermissionSeeder extends Seeder
         $useRole = Role::create(['name' => 'user']);
         $useRole->givePermissionTo(['view-manual']);
 
-
-//        foreach (Manuals::all() as $manual) {
-//            Permission::create(['name' => $manual->name]);
-//            foreach (ManualsItem::all() as $manualItem) {
-//                if ($manualItem->file_type == 'Folder') {
-//                    Permission::create(['name' => $manual->name . '.' . $manualItem->name]);
-//                    foreach (ManualItemContent::all() as $manualItemContent) {
-//                        Permission::create(['name' => $manual->name . '.' . $manualItem->name . '.' . $manualItemContent->name]);
-//                    }
-//                }
-//                if ($manualItem->file_type == 'application/pdf') {
-//                    Permission::create(['name' => $manual->name . '.' . $manualItem->name]);
-//                }
-//
-//            }
-//        }
+        //        foreach (Manuals::all() as $manual) {
+        //            Permission::create(['name' => $manual->name]);
+        //            foreach (ManualsItem::all() as $manualItem) {
+        //                if ($manualItem->file_type == 'Folder') {
+        //                    Permission::create(['name' => $manual->name . '.' . $manualItem->name]);
+        //                    foreach (ManualItemContent::all() as $manualItemContent) {
+        //                        Permission::create(['name' => $manual->name . '.' . $manualItem->name . '.' . $manualItemContent->name]);
+        //                    }
+        //                }
+        //                if ($manualItem->file_type == 'application/pdf') {
+        //                    Permission::create(['name' => $manual->name . '.' . $manualItem->name]);
+        //                }
+        //
+        //            }
+        //        }
     }
 }

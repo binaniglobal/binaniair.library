@@ -5,14 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\ManualItemContent;
 use App\Models\Manuals;
 use App\Models\ManualsItem;
-use App\Models\User;
+use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use App\Models\Permission as Permission;
 
 class ManualsItemController extends Controller
 {
@@ -36,7 +34,7 @@ class ManualsItemController extends Controller
             'files.*' => [
                 'file',
                 'mimes:pdf',
-                'max:' . env('FILE_SIZE', 40960),
+                'max:'.env('FILE_SIZE', 40960),
             ],
         ]);
 
@@ -46,16 +44,16 @@ class ManualsItemController extends Controller
 
         $getParentManual = getManualById($request->id);
 
-        if (!empty($request->type) && $request->type !== 'Folder') {
+        if (! empty($request->type) && $request->type !== 'Folder') {
             foreach ($request->file('files') as $file) {
 
-                if (!$file->isValid()) {
+                if (! $file->isValid()) {
                     return response()->json(['error' => 'Uploaded file is not valid'], 400);
                 }
 
                 $fileName = $file->getClientOriginalName();
                 $customName = Str::beforeLast($fileName, '.pdf');
-                $fileNameUnique = Str::random(4) . '_' . $fileName;
+                $fileNameUnique = Str::random(4).'_'.$fileName;
 
                 $path = Storage::disk('privateSubManual')->putFileAs('', $file, $fileNameUnique);
 
@@ -71,7 +69,7 @@ class ManualsItemController extends Controller
                     $permissionName = "access-manual-{$getParentManual->name}.{$customName}";
                     // Create permission
                     $permission = Permission::firstOrCreate(['name' => $permissionName]);
-                    if (auth()->check() && !auth()->user()->hasPermissionTo($permission)) {
+                    if (auth()->check() && ! auth()->user()->hasPermissionTo($permission)) {
                         auth()->user()->givePermissionTo($permission);
                     }
                 } else {
@@ -95,7 +93,7 @@ class ManualsItemController extends Controller
 
         if ($manual) {
             $permission = Permission::firstOrCreate(['name' => $permissionName]);
-            if (auth()->check() && !auth()->user()->hasPermissionTo($permission)) {
+            if (auth()->check() && ! auth()->user()->hasPermissionTo($permission)) {
                 auth()->user()->givePermissionTo($permission);
             }
         }
@@ -103,7 +101,6 @@ class ManualsItemController extends Controller
         return redirect(route('manual.items.index', $request->id))
             ->with('success', 'Folder created successfully!');
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -116,46 +113,37 @@ class ManualsItemController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ManualsItem $manualsItem)
-    {
-
-    }
+    public function show(ManualsItem $manualsItem) {}
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
-    {
-
-    }
+    public function edit($id) {}
 
     /**
      * Update the specified resource in storage.
      */
-    public function update($id, $ids, Request $request, ManualsItem $manualsItem)
-    {
-
-    }
+    public function update($id, $ids, Request $request, ManualsItem $manualsItem) {}
 
     /**
      * Remove the specified resource from storage.
      */
-    public
-    function destroy($id, $ids, Request $request, ManualsItem $manualsItem, ManualItemContent $manualItemContent)
+    public function destroy($id, $ids, Request $request, ManualsItem $manualsItem, ManualItemContent $manualItemContent)
     {
         if (Auth::user()->can('can destroy')) {
             $path = $manualsItem::where('manual_uid', $id)->where('miid', $ids)->first();
             $getParentManual = getManualById($id);
-            if (!empty($path['file_type']) && $path['file_type'] != 'Folder') {
+            if (! empty($path['file_type']) && $path['file_type'] != 'Folder') {
                 if (Storage::disk('privateSubManual')->exists($path['link'])) {
                     Storage::disk('privateSubManual')->delete($path['link']);
-                    //Remove permissions of the folders deleted.
+                    // Remove permissions of the folders deleted.
                     $getManualItem = getManualItemById($id, $ids);
                     $permissionName = "access-manual-{$getParentManual->name}.{$getManualItem->name}";
                     removePermissionFromAll($permissionName);
-                    //Remove the file information from the database.
+                    // Remove the file information from the database.
                     $manualsItem::where('manual_uid', $id)->where('miid', $ids)->where('file_type', 'application/pdf')->delete();
-                    return redirect(route('manual.items.index', $id, $ids))->with('success', $path['name'] . ' File Deleted');
+
+                    return redirect(route('manual.items.index', $id, $ids))->with('success', $path['name'].' File Deleted');
                 } else {
                     return response()->json(['error' => 'File not found!'], 404);
                 }
@@ -163,7 +151,7 @@ class ManualsItemController extends Controller
             } else {
                 $folderManualContent = $manualItemContent::where('manual_items_uid', $ids)->get();
                 $getManualItem = getManualItemsFolderById($id, $ids);
-                //Remove permissions of the folders deleted.
+                // Remove permissions of the folders deleted.
                 $permissionName = "access-manual-{$getParentManual->name}.{$getManualItem->name}";
                 removePermissionFromAll($permissionName);
 
@@ -171,15 +159,14 @@ class ManualsItemController extends Controller
                     if (Storage::disk('privateSubManualContent')->exists($item->link)) {
                         Storage::disk('privateSubManualContent')->delete($item->link);
                     }
-                    //Remove all the file permissions
+                    // Remove all the file permissions
                     $permissionNameAll = "access-manual-{$getParentManual->name}.{$getManualItem->name}.{$item->name}";
                     removePermissionFromAll($permissionNameAll);
                 }
 
-                //Delete Folders and its contents
+                // Delete Folders and its contents
                 $manualsItem::where('manual_uid', $id)->where('miid', $ids)->where('file_type', 'Folder')->delete();
                 $manualItemContent::where('manual_items_uid', $ids)->delete();
-
 
                 return redirect(route('manual.items.index', $id, $ids))->with('success', 'Folder Deleted');
             }
@@ -189,14 +176,13 @@ class ManualsItemController extends Controller
 
     }
 
-    public
-    function formatBytes($bytes, $precision = 2)
+    public function formatBytes($bytes, $precision = 2)
     {
-        $units = array('B', 'KB', 'MB', 'GB', 'TB');
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
 
         $base = log($bytes) / log(1024);
         $suffix = $units[floor($base)];
 
-        return number_format(pow(1024, $base - floor($base)), $precision) . ' ' . $suffix;
+        return number_format(pow(1024, $base - floor($base)), $precision).' '.$suffix;
     }
 }
