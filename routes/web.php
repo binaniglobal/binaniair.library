@@ -96,8 +96,6 @@ Route::middleware(['auth', 'role:super-admin', 'redirect'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian', 'redirect'])->group(function () {
-
-
     //Add Users
     Route::get('/users', [UserController::class, 'index'])->middleware(['permission:view-user'])->name('users.index');
     Route::get('/users/add', [UserController::class, 'show'])->middleware(['permission:create-user'])->name('users.add');
