@@ -94,14 +94,10 @@ Route::middleware(['auth', 'role:super-admin'])->group(function () {
     // End Add Permissions
 });
 
-<<<<<<< Updated upstream
 Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian', 'redirect'])->group(function () {
-    //Add Users
-=======
-Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian'])->group(function () {
+    Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian'])->group(function () {
 
     // Add Users
->>>>>>> Stashed changes
     Route::get('/users', [UserController::class, 'index'])->middleware(['permission:view-user'])->name('users.index');
     Route::get('/users/add', [UserController::class, 'show'])->middleware(['permission:create-user'])->name('users.add');
     Route::post('/users/create', [UserController::class, 'create'])->middleware(['permission:create-user'])->name('users.create');
@@ -116,6 +112,7 @@ Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian'])->grou
     //    Route::post('/issue/books/create', [IssuingBooksController::class, 'create'])->name('issue.books.create');
     //    Route::post('/issue/books/update', [IssuingBooksController::class, 'update'])->name('issue.books.update');
     // End Issuing Books
+    });
 });
 
 require __DIR__.'/mail.php';

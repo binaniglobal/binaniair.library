@@ -17,13 +17,9 @@ class HomeController extends Controller
         $this->middleware('auth');
     }
 
-<<<<<<< Updated upstream
-
-=======
     /**
      * Show the application dashboard.
      */
->>>>>>> Stashed changes
     public function index()
     {
         if (Auth::user()->hasPermissionTo('view-home')) {
@@ -50,7 +46,7 @@ class HomeController extends Controller
                 $mimeType = Storage::disk('privateSubManualContent')->mimeType($fileName);
                 return response($fileContent, 200)->header('Content-Type', $mimeType)->header('Content-Disposition', 'inline');
             }
-          
+
             return response()->json(['error' => 'File not found'], 404);
         }
 }
