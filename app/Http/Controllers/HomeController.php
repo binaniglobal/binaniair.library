@@ -32,20 +32,25 @@ class HomeController extends Controller
 
     function downloadSubManuals($fileName)
     {
-        if (Storage::disk('privateSubManual')->exists($fileName)) {
-            $fileSize = Storage::disk('privateSubManual')->size($fileName);
-            $fileContent = Storage::disk('privateSubManual')->get($fileName);
-            $mimeType = Storage::disk('privateSubManual')->mimeType($fileName);
+        $disk = Storage::disk('privateSubManual'); // Get disk instance once
+
+        if ($disk->exists($fileName)) {
+            $fileSize = $disk->size($fileName);
+            $mimeType = $disk->mimeType($fileName);
+            $filePath = $disk->path($fileName); // Get the absolute path to the file
+
+            $headers = [
+                'Content-Type' => $mimeType,
+            ];
 
             if ($fileSize >= 104857600) { // 100MB in bytes
-                return response($fileContent, 200)
-                    ->header('Content-Type', $mimeType)
-                    ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+                // Use response()->download() for forced download with a filename
+                return response()->download($filePath, $fileName, $headers);
             } else {
-
-                return response($fileContent, 200)
-                    ->header('Content-Type', $mimeType)
-                    ->header('Content-Disposition', 'inline');
+                // Use response()->file() for inline display
+                // We need to manually set Content-Disposition to inline if using response()->file()
+                $headers['Content-Disposition'] = 'inline';
+                return response()->file($filePath, $headers);
             }
         }
         return response()->json(['error' => 'File not found'], 404);
@@ -53,21 +58,28 @@ class HomeController extends Controller
 
     function downloadSubManualsContent($fileName)
     {
-        if (Storage::disk('privateSubManualContent')->exists($fileName)) {
-            $fileSize = Storage::disk('privateSubManualContent')->size($fileName);
-            $fileContent = Storage::disk('privateSubManualContent')->get($fileName);
-            $mimeType = Storage::disk('privateSubManualContent')->mimeType($fileName);
+
+        $disk = Storage::disk('privateSubManualContent'); // Get disk instance once
+
+        if ($disk->exists($fileName)) {
+            $fileSize = $disk->size($fileName);
+            $mimeType = $disk->mimeType($fileName);
+            $filePath = $disk->path($fileName); // Get the absolute path to the file
+
+            $headers = [
+                'Content-Type' => $mimeType,
+            ];
+
             if ($fileSize >= 104857600) { // 100MB in bytes
-                return response($fileContent, 200)
-                    ->header('Content-Type', $mimeType)
-                    ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+                // Use response()->download() for forced download with a filename
+                return response()->download($filePath, $fileName, $headers);
             } else {
-                return response($fileContent, 200)
-                    ->header('Content-Type', $mimeType)
-                    ->header('Content-Disposition', 'inline');
+                // Use response()->file() for inline display
+                // We need to manually set Content-Disposition to inline if using response()->file()
+                $headers['Content-Disposition'] = 'inline';
+                return response()->file($filePath, $headers);
             }
         }
-
         return response()->json(['error' => 'File not found'], 404);
     }
 }
