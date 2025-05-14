@@ -64,7 +64,7 @@
                                     click to upload
                                 </div>
                                 <div class="fallback">
-                                    <input name="files[]" type="file" />
+                                    <input name="files[]" type="file" accept="application/pdf" />
                                     <button class="btn btn-outline-primary" type="submit">Upload</button>
                                 </div>
                             </form>
