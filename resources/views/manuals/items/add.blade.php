@@ -76,7 +76,7 @@
         </div>
     </div>
     @push('scripts')
-        <script src="{{ asset('storage/assets/vendor/libs/dropzone/dropzone.js') }}"></script>
+
 {{--        <script src="{{ asset('storage/assets/js/forms-file-upload.js') }}"></script>--}}
 
     @endpush
