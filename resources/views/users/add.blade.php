@@ -84,7 +84,7 @@
                                     <select
                                         id="permission"
                                         name="permission[]"
-                                        class="selectpicker w-100"
+                                        class="form-control select2 form-select form-select-lg"
                                         data-style="btn-default"
                                         multiple
                                         data-actions-box="true">

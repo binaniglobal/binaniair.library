@@ -49,7 +49,7 @@
                                 <td>{{ ucfirst($user->name).' '. ucfirst($user->surname) }}</td>
                                 <td>{{ ucfirst($user->email) }}</td>
                                 <td>{{ $user->phone}}</td>
-                                <td>{{ ucfirst($user->getRoleNames()->first()) }}</td>
+                                <td>{{ ucfirst($user->load('roles')->getRoleNames()->first()) }}</td>
                                 <td>{{ $user->getAllPermissions()->pluck('name')->implode(', ') }}</td>
                                 @canany(['edit-user', 'destroy-user'])
                                     <td>
