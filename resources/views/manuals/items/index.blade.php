@@ -1,4 +1,4 @@
-@php use App\Models\Manuals; @endphp
+@php use App\Models\Manuals; use Illuminate\Support\Facades\Auth; @endphp
 @extends('layouts.app')
 
 @section('content')
