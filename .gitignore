@@ -23,3 +23,7 @@ Homestead.json
 .phpunit.result.cache
 .idea\php.xml
 .idea/php.xml
+.idea/php.xml
+.idea/whisperer_for_laravel.xml
+.idea/php.xml
+/.idea
