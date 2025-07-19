@@ -21,11 +21,11 @@ class LoginController extends Controller
 
     use AuthenticatesUsers;
 
-//    /**
-//     * Where to redirect users after login.
-//     *
-//     * @var string
-//     */
+    //    /**
+    //     * Where to redirect users after login.
+    //     *
+    //     * @var string
+    //     */
 
     //    protected $redirectTo = '/home';
 
@@ -41,10 +41,13 @@ class LoginController extends Controller
 
     protected function redirectTo()
     {
-        if (Auth::user()->hasPermissionTo('view-home')) {
-            return redirect('/home');
-        } else {
-            return redirect('/manuals');
+        // Use the standard Laravel `can()` method for permission checks.
+        // The Spatie/laravel-permission package integrates with this automatically.
+        if (auth()->user()?->can('view-home')) {
+            return '/home';
         }
+
+        // By default, redirect to the manuals page.
+        return '/manuals';
     }
 }

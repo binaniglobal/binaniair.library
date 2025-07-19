@@ -154,4 +154,58 @@ class ManualItemContentController extends Controller
             return response()->json(['error' => 'You do not have permission to delete files'], 404);
         }
     }
+
+    /**
+     * API endpoint to get manual item content for PWA caching
+     */
+    public function apiIndex($id)
+    {
+        $user = auth()->user();
+        $manualItem = ManualsItem::where('miid', $id)->first();
+
+        if (! $manualItem) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Manual item not found',
+            ], 404);
+        }
+
+        $manual = \App\Models\Manuals::where('mid', $manualItem->manual_uid)->first();
+
+        if (! $manual || ! $user->hasPermissionTo("access-manual-{$manual->name}.{$manualItem->name}")) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Access denied',
+            ], 403);
+        }
+
+        $contents = ManualItemContent::where('manual_items_uid', $id)->orderBy('created_at')->get();
+
+        $contentsData = $contents->map(function ($content) {
+            return [
+                'id' => $content->micd,
+                'manual_items_uid' => $content->manual_items_uid,
+                'name' => $content->name,
+                'file_path' => $content->link,
+                'file_size' => $content->file_size,
+                'content_type' => $content->file_type,
+                'url' => route('download.contents', $content->link),
+                'pwa_url' => getPwaSubManualContentUrl($content->link),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $contentsData->toArray(),
+            'manual_item' => [
+                'id' => $manualItem->miid,
+                'name' => $manualItem->name,
+            ],
+            'manual' => [
+                'id' => $manual->mid,
+                'name' => $manual->name,
+            ],
+            'cached_at' => now()->toISOString(),
+        ]);
+    }
 }

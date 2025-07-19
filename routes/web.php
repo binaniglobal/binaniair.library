@@ -21,14 +21,6 @@ Route::get('/', function () {
 Auth::routes([
     'register' => false,
 ]);
-// Route::get('/test-private-disk', function () {
-//    try {
-//        $result = Storage::disk('privateSubManual')->put('test.txt', 'This is a test file.');
-//        return $result ? 'File written successfully!' : 'Failed to write file.';
-//    } catch (\Exception $e) {
-//        return $e->getMessage();
-//    }
-// });
 
 Route::get('/storage/link', function () {
     Artisan::call('storage:link');
@@ -44,6 +36,57 @@ Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian|user'])-
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/manual/sub-manuals/file/{filename}', [HomeController::class, 'downloadSubManuals'])->name('download.submanuals');
     Route::get('/manual/sub-manuals/content/file/{filename}', [HomeController::class, 'downloadSubManualsContent'])->name('download.contents');
+
+
+    // PWA API endpoints
+    Route::get('/api/manuals', [ManualsController::class, 'apiIndex'])->name('api.manuals');
+    Route::get('/api/manual/{id}/items', [ManualsItemController::class, 'apiIndex'])->name('api.manual.items');
+    Route::get('/api/manual-item/{id}/content', [ManualItemContentController::class, 'apiIndex'])->name('api.manual.content');
+
+    // PWA Status page
+    Route::get('/pwa-status', function () {
+        return view('pwa-status');
+    })->name('pwa.status');
+
+    // PWA Authentication token endpoint
+    Route::get('/pwa/auth-token', function () {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Not authenticated'], 401);
+        }
+
+        // Generate a simple token based on session and user info
+        $tokenData = [
+            'user_id' => $user->uuid,
+            'session_id' => session()->getId(),
+            'expires_at' => now()->addHours(24)->timestamp
+        ];
+
+        // Create a signed token
+        $token = base64_encode(json_encode($tokenData));
+        $signature = hash_hmac('sha256', $token, config('app.key'));
+
+        return response()->json([
+            'token' => $token . '.' . $signature,
+            'expires_at' => $tokenData['expires_at'],
+            'user' => [
+                'id' => $user->uuid,
+                'name' => $user->name
+            ]
+        ]);
+    })->name('pwa.auth.token');
+
+    // Debug route to test URL encoding
+    Route::get('/debug-pwa-url/{filename}', function ($filename) {
+        return response()->json([
+            'original_filename' => $filename,
+            'url_decoded' => urldecode($filename),
+            'url_encoded' => urlencode($filename),
+            'pwa_submanual_url' => getPwaSubManualUrl($filename),
+            'file_exists' => Storage::disk('privateSubManual')->exists($filename),
+            'file_exists_decoded' => Storage::disk('privateSubManual')->exists(urldecode($filename)),
+        ]);
+    })->name('debug.pwa.url');
 
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::put('/update', [ProfileController::class, 'update'])->name('profile.update');
@@ -97,22 +140,67 @@ Route::middleware(['auth', 'role:super-admin'])->group(function () {
 Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian', 'redirect'])->group(function () {
     Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian'])->group(function () {
 
-    // Add Users
-    Route::get('/users', [UserController::class, 'index'])->middleware(['permission:view-user'])->name('users.index');
-    Route::get('/users/add', [UserController::class, 'show'])->middleware(['permission:create-user'])->name('users.add');
-    Route::post('/users/create', [UserController::class, 'create'])->middleware(['permission:create-user'])->name('users.create');
-    Route::get('/users/d34{id}/{str}s/edit', [UserController::class, 'edit'])->middleware(['permission:edit-user'])->name('users.edit');
-    Route::put('/users/f{id}s/update', [UserController::class, 'update'])->middleware(['permission:edit-user'])->name('users.update');
-    Route::get('/users/d{id}/{str}a/destroy', [UserController::class, 'destroy'])->middleware(['permission:destroy-user'])->name('users.destroy');
-    // End Users
+        // Add Users
+        Route::get('/users', [UserController::class, 'index'])->middleware(['permission:view-user'])->name('users.index');
+        Route::get('/users/add', [UserController::class, 'show'])->middleware(['permission:create-user'])->name('users.add');
+        Route::post('/users/create', [UserController::class, 'create'])->middleware(['permission:create-user'])->name('users.create');
+        Route::get('/users/d34{id}/{str}s/edit', [UserController::class, 'edit'])->middleware(['permission:edit-user'])->name('users.edit');
+        Route::put('/users/f{id}s/update', [UserController::class, 'update'])->middleware(['permission:edit-user'])->name('users.update');
+        Route::get('/users/d{id}/{str}a/destroy', [UserController::class, 'destroy'])->middleware(['permission:destroy-user'])->name('users.destroy');
+        // End Users
 
-    // Start Issuing Books
-    //    Route::get('/issue/books', [IssuingBooksController::class, 'index'])->name('issue.books.index');
-    //    Route::get('/issue/books/add', [IssuingBooksController::class, 'show'])->name('issue.books.show');
-    //    Route::post('/issue/books/create', [IssuingBooksController::class, 'create'])->name('issue.books.create');
-    //    Route::post('/issue/books/update', [IssuingBooksController::class, 'update'])->name('issue.books.update');
-    // End Issuing Books
+        // Start Issuing Books
+        //    Route::get('/issue/books', [IssuingBooksController::class, 'index'])->name('issue.books.index');
+        //    Route::get('/issue/books/add', [IssuingBooksController::class, 'show'])->name('issue.books.show');
+        //    Route::post('/issue/books/create', [IssuingBooksController::class, 'create'])->name('issue.books.create');
+        //    Route::post('/issue/books/update', [IssuingBooksController::class, 'update'])->name('issue.books.update');
+        // End Issuing Books
     });
+});
+
+// PWA-specific download routes for offline caching
+// These routes use session middleware to ensure proper authentication
+Route::middleware(['web'])->group(function () {
+    // Handle CORS preflight requests for local development
+    Route::options('/pwa/download/submanuals/{filename}', function ($filename) {
+        $headers = [];
+        if (app()->environment('local') || request()->getHost() === '127.0.0.10' || request()->getHost() === 'localhost') {
+            $headers = [
+                'Access-Control-Allow-Origin' => request()->getSchemeAndHttpHost(),
+                'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, X-PWA-Token, Authorization',
+                'Access-Control-Allow-Credentials' => 'true',
+                'Access-Control-Max-Age' => '86400',
+            ];
+        }
+        return response('', 200, $headers);
+    })->where('filename', '.*');
+
+    Route::options('/pwa/download/contents/{filename}', function ($filename) {
+        $headers = [];
+        if (app()->environment('local') || request()->getHost() === '127.0.0.10' || request()->getHost() === 'localhost') {
+            $headers = [
+                'Access-Control-Allow-Origin' => request()->getSchemeAndHttpHost(),
+                'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, X-PWA-Token, Authorization',
+                'Access-Control-Allow-Credentials' => 'true',
+                'Access-Control-Max-Age' => '86400',
+            ];
+        }
+        return response('', 200, $headers);
+    })->where('filename', '.*');
+
+    Route::get('/pwa/download/submanuals/{filename}', function ($filename) {
+        // Decode the filename since it may be URL-encoded
+        $decodedFilename = urldecode($filename);
+        return downloadPwaSubManuals($decodedFilename);
+    })->name('pwa.download.submanuals')->where('filename', '.*');
+
+    Route::get('/pwa/download/contents/{filename}', function ($filename) {
+        // Decode the filename since it may be URL-encoded
+        $decodedFilename = urldecode($filename);
+        return downloadPwaSubManualsContent($decodedFilename);
+    })->name('pwa.download.contents')->where('filename', '.*');
 });
 
 require __DIR__.'/mail.php';

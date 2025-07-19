@@ -185,4 +185,49 @@ class ManualsItemController extends Controller
 
         return number_format(pow(1024, $base - floor($base)), $precision).' '.$suffix;
     }
+
+    /**
+     * API endpoint to get manual items for PWA caching
+     */
+    public function apiIndex($id)
+    {
+        $user = auth()->user();
+        $manual = Manuals::where('mid', $id)->first();
+
+        if (! $manual || ! $user->hasPermissionTo("access-manual-{$manual->name}")) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Access denied',
+            ], 403);
+        }
+
+        $items = ManualsItem::where('manual_uid', $id)->orderBy('created_at')->get();
+
+        $itemsData = $items->map(function ($item) {
+            return [
+                'id' => $item->miid,
+                'manual_uid' => $item->manual_uid,
+                'name' => $item->name,
+                'file_path' => $item->link,
+                'file_size' => $item->file_size,
+                'file_type' => $item->file_type,
+                'url' => $item->file_type === 'Folder'
+                    ? route('manual.items.content.index', $item->miid)
+                    : route('download.submanuals', $item->link),
+                'pwa_url' => $item->file_type === 'Folder'
+                    ? null
+                    : getPwaSubManualUrl($item->link),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $itemsData->toArray(),
+            'manual' => [
+                'id' => $manual->mid,
+                'name' => $manual->name,
+            ],
+            'cached_at' => now()->toISOString(),
+        ]);
+    }
 }

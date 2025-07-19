@@ -13,7 +13,25 @@ class ManualsController extends Controller
      */
     public function index()
     {
-        return view('manuals.index', ['Manuals' => Manuals::all()]);
+        $user = auth()->user();
+        $allManuals = Manuals::all();
+        
+        // Filter manuals based on permissions and prepare for JS
+        $accessibleManuals = $allManuals->filter(function($manual) use ($user) {
+            return $user->hasPermissionTo('access-manual-' . $manual->name);
+        })->map(function($manual) {
+            return [
+                'id' => $manual->mid,
+                'mid' => $manual->mid,
+                'name' => $manual->name,
+                'type' => $manual->type ?? 0
+            ];
+        })->values();
+        
+        return view('manuals.index', [
+            'Manuals' => $allManuals,
+            'AccessibleManuals' => $accessibleManuals
+        ]);
     }
 
     public function getManualName($id)
@@ -87,5 +105,34 @@ class ManualsController extends Controller
         deleteManualItemRecursively($id);
 
         return redirect(route('manual.index', $id))->with('success', 'Manual and its contents are deleted');
+    }
+
+    /**
+     * API endpoint to get manuals data for PWA caching
+     */
+    public function apiIndex()
+    {
+        $user = auth()->user();
+        $manuals = collect();
+
+        // Get all manuals and filter by permissions
+        $allManuals = Manuals::all();
+
+        foreach ($allManuals as $manual) {
+            if ($user->hasPermissionTo("access-manual-{$manual->name}")) {
+                $manuals->push([
+                    'id' => $manual->mid,
+                    'name' => $manual->name,
+                    'type' => $manual->type,
+                    'url' => route('manual.items.index', $manual->mid),
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $manuals->toArray(),
+            'cached_at' => now()->toISOString(),
+        ]);
     }
 }

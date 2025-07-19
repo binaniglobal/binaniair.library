@@ -1,0 +1,29 @@
+{
+    "name": "BinaniAir Library Management System",
+    "short_name": "BinaniAir Library",
+    "background_color": "#ffffff",
+    "display": "standalone",
+    "description": "A Progressive Web Application for managing library manuals and documents with offline access.",
+    "theme_color": "#b1eb34",
+    "scope": "/",
+    "orientation": "portrait-primary",
+    "start_url": "/",
+    "icons": [
+        {
+            "src": "logo.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "logo-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "logo-144x144.png",
+            "sizes": "144x144",
+            "type": "image/png"
+        }
+    ]
+}

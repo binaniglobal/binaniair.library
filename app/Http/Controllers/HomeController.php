@@ -30,7 +30,7 @@ class HomeController extends Controller
         }
     }
 
-    function downloadSubManuals($fileName)
+    public function downloadSubManuals($fileName)
     {
         $disk = Storage::disk('privateSubManual'); // Get disk instance once
 
@@ -50,13 +50,15 @@ class HomeController extends Controller
                 // Use response()->file() for inline display
                 // We need to manually set Content-Disposition to inline if using response()->file()
                 $headers['Content-Disposition'] = 'inline';
+
                 return response()->file($filePath, $headers);
             }
         }
+
         return response()->json(['error' => 'File not found'], 404);
     }
 
-    function downloadSubManualsContent($fileName)
+    public function downloadSubManualsContent($fileName)
     {
 
         $disk = Storage::disk('privateSubManualContent'); // Get disk instance once
@@ -77,9 +79,11 @@ class HomeController extends Controller
                 // Use response()->file() for inline display
                 // We need to manually set Content-Disposition to inline if using response()->file()
                 $headers['Content-Disposition'] = 'inline';
+
                 return response()->file($filePath, $headers);
             }
         }
+
         return response()->json(['error' => 'File not found'], 404);
     }
 }
