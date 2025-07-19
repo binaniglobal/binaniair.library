@@ -50,9 +50,10 @@
                             @can('access-manual-'.$parentManual->name.'.'. $Manual->name.'.'.$items->name)
                                 <tr>
                                     <td>
+                                        <div class="btn-group">
                                         <a href="{{ route('download.contents', $items->link) }}">{{ $items->name }}</a>
                                         @if($items->file_type === 'application/pdf')
-                                            <br>
+                                                &nbsp; &nbsp;
                                             <button class="btn btn-sm btn-outline-primary cache-doc-btn"
                                                     data-doc-id="{{ $items->micd }}"
                                                     data-doc-name="{{ $items->name }}"
@@ -62,6 +63,7 @@
                                                 <i class="mdi mdi-download"></i>
                                             </button>
                                         @endif
+                                        </div>
                                     </td>
                                     <td>{{ $items->file_type=='application/pdf'?'PDF':$items->file_type }}</td>
                                     <td>{{ $size->formatBytes($items->file_size) }}</td>
