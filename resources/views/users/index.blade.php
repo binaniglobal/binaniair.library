@@ -30,12 +30,11 @@
                 <table class="dt-responsive table table-hover" id="dt-responsive">
                     <thead>
                     <tr>
-                        <th>S/N</th>
+{{--                        <th>S/N</th>--}}
                         <th>Names</th>
                         <th>Email</th>
                         <th>Phone</th>
                         <th>Role</th>
-                        <th>Permission</th>
                         @canany(['edit-user','destroy-user'])
                             <th>Action</th>
                         @endcanany
@@ -45,12 +44,11 @@
                     @can('view-user')
                         @foreach($Users as $index => $user)
                             <tr>
-                                <td>{{ $index+1 }}</td>
+{{--                                <td>{{ $index+1 }}</td>--}}
                                 <td>{{ ucfirst($user->name).' '. ucfirst($user->surname) }}</td>
                                 <td>{{ ucfirst($user->email) }}</td>
                                 <td>{{ $user->phone}}</td>
                                 <td>{{ ucfirst($user->load('roles')->getRoleNames()->first()) }}</td>
-                                <td>{{ $user->getAllPermissions()->pluck('name')->implode(', ') }}</td>
                                 @canany(['edit-user', 'destroy-user'])
                                     <td>
                                         <div class="dropdown">

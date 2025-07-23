@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Manuals;
 use App\Models\Permission;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ManualsController extends Controller
 {
@@ -15,11 +16,11 @@ class ManualsController extends Controller
     {
         $user = auth()->user();
         $allManuals = Manuals::all();
-        
+
         // Filter manuals based on permissions and prepare for JS
-        $accessibleManuals = $allManuals->filter(function($manual) use ($user) {
+        $accessibleManuals = $allManuals->filter(function ($manual) use ($user) {
             return $user->hasPermissionTo('access-manual-' . $manual->name);
-        })->map(function($manual) {
+        })->map(function ($manual) {
             return [
                 'id' => $manual->mid,
                 'mid' => $manual->mid,
@@ -27,7 +28,7 @@ class ManualsController extends Controller
                 'type' => $manual->type ?? 0
             ];
         })->values();
-        
+
         return view('manuals.index', [
             'Manuals' => $allManuals,
             'AccessibleManuals' => $accessibleManuals
@@ -57,7 +58,7 @@ class ManualsController extends Controller
             $permissionName = "access-manual-{$request->manual_name}";
             // Create permission
             $permission = Permission::firstOrCreate(['name' => $permissionName]);
-            if (auth()->check() && ! auth()->user()->hasPermissionTo($permission)) {
+            if (auth()->check() && !auth()->user()->hasPermissionTo($permission)) {
                 auth()->user()->givePermissionTo($permission);
             }
         }
@@ -102,9 +103,11 @@ class ManualsController extends Controller
      */
     public function destroy($id)
     {
-        deleteManualItemRecursively($id);
-
-        return redirect(route('manual.index', $id))->with('success', 'Manual and its contents are deleted');
+        if (Auth::user()->can('destroy-manual')) {
+            deleteManualItemRecursively($id);
+            return redirect(route('manual.index', $id))->with('success', 'Manual and its contents are deleted');
+        }
+        return redirect(route('manual.index', $id))->with('success', 'Sorry, this manual could not be deleted');
     }
 
     /**

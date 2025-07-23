@@ -130,7 +130,7 @@ class ManualsItemController extends Controller
      */
     public function destroy($id, $ids, Request $request, ManualsItem $manualsItem, ManualItemContent $manualItemContent)
     {
-        if (Auth::user()->can('can destroy')) {
+        if (Auth::user()->can('destroy-manual')) {
             $path = $manualsItem::where('manual_uid', $id)->where('miid', $ids)->first();
             $getParentManual = getManualById($id);
             if (! empty($path['file_type']) && $path['file_type'] != 'Folder') {

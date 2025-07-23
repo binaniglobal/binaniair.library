@@ -118,7 +118,7 @@ class ManualItemContentController extends Controller
      */
     public function destroy($id, $ids, ManualItemContent $manualItemContent)
     {
-        if (Auth::user()->can('can destroy')) {
+        if (Auth::user()->can('destroy-manual')) {
             $path = $manualItemContent::where('micd', $ids)->first();
             if (! empty($path['file_type']) && $path['file_type'] != 'Folder') {
                 if (! empty($path['link'])) {

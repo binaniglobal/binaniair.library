@@ -44,25 +44,25 @@
                     @can('view-manual')
                         @foreach($Items as $items)
                             @php
-//                                $count = ManualItemContent::where('manual_items_uid', $items->miid)->count();
-                                $parentManual = Manuals::where('mid', $items->manual_uid)->first();
+                                //                                $count = ManualItemContent::where('manual_items_uid', $items->miid)->count();
+                                                                $parentManual = Manuals::where('mid', $items->manual_uid)->first();
                             @endphp
                             @can('access-manual-'.$parentManual->name.'.'. $Manual->name.'.'.$items->name)
                                 <tr>
                                     <td>
                                         <div class="btn-group">
-                                        <a href="{{ route('download.contents', $items->link) }}">{{ $items->name }}</a>
-                                        @if($items->file_type === 'application/pdf')
+                                            <a href="{{ route('download.contents', $items->link) }}">{{ $items->name }}</a>
+                                            @if($items->file_type === 'application/pdf')
                                                 &nbsp; &nbsp;
-                                            <button class="btn btn-sm btn-outline-primary cache-doc-btn"
-                                                    data-doc-id="{{ $items->micd }}"
-                                                    data-doc-name="{{ $items->name }}"
-                                                    data-doc-path="{{ $items->link }}"
-                                                    data-pwa-url="{{ getPwaSubManualContentUrl($items->link) }}"
-                                                    title="Cache this document for offline access">
-                                                <i class="mdi mdi-download"></i>
-                                            </button>
-                                        @endif
+                                                <button class="btn btn-sm btn-outline-primary cache-doc-btn"
+                                                        data-doc-id="{{ $items->micd }}"
+                                                        data-doc-name="{{ $items->name }}"
+                                                        data-doc-path="{{ $items->link }}"
+                                                        data-pwa-url="{{ getPwaSubManualContentUrl($items->link) }}"
+                                                        title="Cache this document for offline access">
+                                                    <i class="mdi mdi-download"></i>
+                                                </button>
+                                            @endif
                                         </div>
                                     </td>
                                     <td>{{ $items->file_type=='application/pdf'?'PDF':$items->file_type }}</td>
@@ -87,8 +87,7 @@
                                                     @endif
                                                     <a class="dropdown-item"
                                                        href="{{ route('manual.items.content.destroy', ['id'=>$items->manual_uid, 'ids'=>$items->micd]) }}"
-                                                    ><i class="mdi mdi-trash-can-outline me-1"></i> Delete</a
-                                                    >
+                                                    ><i class="mdi mdi-trash-can-outline me-1"></i> Delete</a>
                                                 </div>
                                             </div>
                                         </td>

@@ -33,9 +33,9 @@
                         <th>{{ $Manual->name }}</th>
                         <th>File Type</th>
                         <th>File Size</th>
-                        @can('destroy-manual')
-                            <th>Action</th>
-                        @endcan
+                        {{--                        @can('destroy-manual')--}}
+                        <th>Action</th>
+                        {{--                        @endcan--}}
                     </tr>
                     </thead>
                     <tbody class="table-border-bottom-0">
@@ -57,7 +57,7 @@
                                             <div class="btn-group">
                                                 <a href="{{ route('download.submanuals',$items->link) }}">{{ $items->name }}</a>
                                                 @if($items->file_type === 'application/pdf')
-                                                        &nbsp; &nbsp;
+                                                    &nbsp; &nbsp;
                                                     <button class=" badge btn-primary cache-doc-btn"
                                                             data-doc-id="{{ $items->miid }}"
                                                             data-doc-name="{{ $items->name }}"
@@ -74,31 +74,33 @@
                                     <td>{{ $items->file_type === 'application/pdf'?'PDF':'' }}</td>
                                     <td>{{ $items->file_type === 'application/pdf' ? $size->formatBytes($items->file_size):'' }}</td>
 
-                                    @can('destroy-manual')
-                                        <td>
-                                            <div class="dropdown">
-                                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                                        data-bs-toggle="dropdown">
-                                                    <i class="mdi mdi-dots-vertical"></i>
-                                                </button>
-                                                <div class="dropdown-menu">
-                                                    @if($items->file_type === 'application/pdf')
-                                                        <a class="dropdown-item cache-doc-btn"
-                                                           href="#"
-                                                           data-doc-id="{{ $items->miid }}"
-                                                           data-doc-name="{{ $items->name }}"
-                                                           data-doc-path="{{ $items->link }}"
-                                                           data-pwa-url="{{ getPwaSubManualUrl($items->link) }}">
-                                                            <i class="mdi mdi-download me-1"></i> Cache Offline
-                                                        </a>
-                                                    @endif
+
+                                    <td>
+                                        <div class="dropdown">
+                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                                    data-bs-toggle="dropdown">
+                                                <i class="mdi mdi-dots-vertical"></i>
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                @if($items->file_type === 'application/pdf')
+                                                    <a class="dropdown-item cache-doc-btn"
+                                                       href="#"
+                                                       data-doc-id="{{ $items->miid }}"
+                                                       data-doc-name="{{ $items->name }}"
+                                                       data-doc-path="{{ $items->link }}"
+                                                       data-pwa-url="{{ getPwaSubManualUrl($items->link) }}">
+                                                        <i class="mdi mdi-download me-1"></i> Cache Offline
+                                                    </a>
+                                                @endif
+                                                @can('destroy-manual')
                                                     <a class="dropdown-item"
                                                        href="{{ route('manual.items.destroy', ['id'=>$items->manual_uid, 'ids'=>$items->miid]) }}">
                                                         <i class="mdi mdi-trash-can-outline me-1"></i> Delete</a>
-                                                </div>
+                                                @endcan
                                             </div>
-                                        </td>
-                                    @endcan
+                                        </div>
+                                    </td>
+
                                 </tr>
                             @endcan
                         @endforeach
