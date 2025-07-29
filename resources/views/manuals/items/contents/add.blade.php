@@ -67,6 +67,7 @@
             uploadMultiple: true, // Group all files in one request
             parallelUploads: 5, // Max number of files to upload in parallel
             maxFiles: 5, // Matches controller validation
+            maxFilesize: {{ env('FILE_SIZE') }},
             paramName: "file", // Matches `$request->validate(['file' => ...])` in the controller
             acceptedFiles: 'application/pdf',
             addRemoveLinks: true,

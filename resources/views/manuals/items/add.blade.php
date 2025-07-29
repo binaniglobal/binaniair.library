@@ -115,6 +115,7 @@
             uploadMultiple: true, // Group all files in one request
             parallelUploads: 10, // Max number of files to upload in parallel
             maxFiles: 10, // Matches controller validation
+            maxFilesize: {{ env('FILE_SIZE') }},
             acceptedFiles: 'application/pdf',
             addRemoveLinks: true, // Show remove links
             // The text displayed before any files are dropped.
