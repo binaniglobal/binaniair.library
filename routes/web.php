@@ -37,7 +37,6 @@ Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian|user'])-
     Route::get('/manual/sub-manuals/file/{filename}', [HomeController::class, 'downloadSubManuals'])->name('download.submanuals');
     Route::get('/manual/sub-manuals/content/file/{filename}', [HomeController::class, 'downloadSubManualsContent'])->name('download.contents');
 
-
     // PWA API endpoints
     Route::get('/api/manuals', [ManualsController::class, 'apiIndex'])->name('api.manuals');
     Route::get('/api/manual/{id}/items', [ManualsItemController::class, 'apiIndex'])->name('api.manual.items');
@@ -101,13 +100,13 @@ Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian|user'])-
     // Start Manual Items
     Route::get('/manual/sub-manuals/{id}', [ManualsItemController::class, 'index'])->middleware(['permission:view-manual'])->name('manual.items.index');
     Route::get('/manual/sub-manuals/{id}/add', [ManualsItemController::class, 'create'])->middleware(['permission:create-manual'])->name('manual.items.show');
-    Route::post('/manual/sub-manuals/create', [ManualsItemController::class, 'store'])->middleware(['permission:create-manual'])->name('manual.items.add');
+    Route::post('/manual/sub-manuals/create', [ManualsItemController::class, 'store'])->middleware(['permission:create-manual'])->name('manual.items.store');
     Route::get('/manual/sub-manuals/{id}/destroy/{ids}', [ManualsItemController::class, 'destroy'])->middleware(['permission:destroy-manual'])->name('manual.items.destroy');
 
     // Start Manual Items Contents
     Route::get('/manual/sub-manuals/content/{id}', [ManualItemContentController::class, 'index'])->middleware(['permission:view-manual'])->name('manual.items.content.index');
     Route::get('/manual/sub-manuals/content/{id}/add', [ManualItemContentController::class, 'create'])->middleware(['permission:create-manual'])->name('manual.items.content.show');
-    Route::post('/manual/sub-manuals/content/create', [ManualItemContentController::class, 'store'])->middleware(['permission:create-manual'])->name('manual.items.content.add');
+    Route::post('/manual/sub-manuals/content/create', [ManualItemContentController::class, 'store'])->middleware(['permission:create-manual'])->name('manual.items.content.store');
     Route::get('/manual/sub-manuals/content/{id}/destroy/{ids}', [ManualItemContentController::class, 'destroy'])->middleware(['permission:destroy-manual'])->name('manual.items.content.destroy');
     // End Manual Items Contents
 });

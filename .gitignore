@@ -27,3 +27,10 @@ Homestead.json
 .idea/whisperer_for_laravel.xml
 .idea/php.xml
 /.idea
+*.iml
+.idea/sqldialects.xml
+/.idea
+/docker/8.0
+/docker
+*.rar
+*.xml

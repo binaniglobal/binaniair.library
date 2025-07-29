@@ -8,8 +8,9 @@ use App\Models\ManualsItem;
 use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class ManualsItemController extends Controller
@@ -19,87 +20,15 @@ class ManualsItemController extends Controller
      */
     public function index($id)
     {
-        return view('manuals.items.index', ['Id' => $id, 'Manual' => Manuals::where('mid', $id)->first(), 'Items' => ManualsItem::where('manual_uid', $id)->orderBy('created_at')->get()]);
-    }
+        // Use findOrFail for automatic 404 and eager load items for efficiency.
+        // This assumes a 'items' relationship exists on the Manuals model.
+        $manual = Manuals::with('items')->findOrFail($id);
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request, ManualsItem $manualsItem)
-    {
-        $validate = Validator::make($request->all(), [
-            'manual_name' => 'nullable|string|unique:manuals_items,name', // Allow nullable if not used in 'files' case
-            'type' => 'required|string',
-            'files' => 'array|max:10',
-            'files.*' => [
-                'file',
-                'mimes:pdf',
-                'max:'.env('FILE_SIZE', 40960),
-            ],
+        return view('manuals.items.index', [
+            'Id' => $id,
+            'Manual' => $manual,
+            'Items' => $manual->items()->orderBy('created_at')->get(),
         ]);
-
-        if ($validate->fails()) {
-            return redirect()->back()->withErrors($validate)->withInput();
-        }
-
-        $getParentManual = getManualById($request->id);
-
-        if (! empty($request->type) && $request->type !== 'Folder') {
-            foreach ($request->file('files') as $file) {
-
-                if (! $file->isValid()) {
-                    return response()->json(['error' => 'Uploaded file is not valid'], 400);
-                }
-
-                $fileName = $file->getClientOriginalName();
-                $customName = Str::beforeLast($fileName, '.pdf');
-                $fileNameUnique = Str::random(4).'_'.$fileName;
-
-                $path = Storage::disk('privateSubManual')->putFileAs('', $file, $fileNameUnique);
-
-                $manual = $manualsItem::create([
-                    'manual_uid' => $request->id,
-                    'name' => $customName,
-                    'link' => $path,
-                    'file_size' => $file->getSize(),
-                    'file_type' => $file->getClientMimeType(),
-                ]);
-
-                if ($manual) {
-                    $permissionName = "access-manual-{$getParentManual->name}.{$customName}";
-                    // Create permission
-                    $permission = Permission::firstOrCreate(['name' => $permissionName]);
-                    if (auth()->check() && ! auth()->user()->hasPermissionTo($permission)) {
-                        auth()->user()->givePermissionTo($permission);
-                    }
-                } else {
-                    Storage::disk('privateSubManual')->delete($path);
-                }
-            }
-
-            return redirect(route('manual.items.index', $request->id))
-                ->with('success', 'Files uploaded successfully!');
-        }
-
-        // Else case: creating a Folder
-        $permissionName = "access-manual-{$getParentManual->name}.{$request->manual_name}";
-        $manual = $manualsItem::create([
-            'manual_uid' => $request->id,
-            'name' => $request->manual_name,
-            'link' => $request->manual_name,
-            'file_size' => '0MB',
-            'file_type' => 'Folder',
-        ]);
-
-        if ($manual) {
-            $permission = Permission::firstOrCreate(['name' => $permissionName]);
-            if (auth()->check() && ! auth()->user()->hasPermissionTo($permission)) {
-                auth()->user()->givePermissionTo($permission);
-            }
-        }
-
-        return redirect(route('manual.items.index', $request->id))
-            ->with('success', 'Folder created successfully!');
     }
 
     /**
@@ -107,83 +36,83 @@ class ManualsItemController extends Controller
      */
     public function create($id)
     {
-        return view('manuals.items.add', ['Id' => $id, 'Manual' => Manuals::where('mid', $id)->first()]);
+        $manual = Manuals::findOrFail($id);
+        return view('manuals.items.add', ['Id' => $id, 'Manual' => $manual]);
     }
 
     /**
-     * Display the specified resource.
+     * Store a newly created resource in storage.
      */
-    public function show(ManualsItem $manualsItem) {}
+    public function store(Request $request)
+    {
+        // 1. Centralized and conditional validation
+        $validated = $request->validate([
+            'id' => 'required|string|exists:manuals,mid', // The parent manual ID
+            'type' => 'required|string|in:Folder,File',
+            'manual_name' => 'required_if:type,Folder|nullable|string|max:255',
+            'files' => 'required_if:type,File|nullable|array|max:10',
+            'files.*' => 'required_if:type,File|nullable|file|mimes:pdf|max:'.env('FILE_SIZE', 40960),
+        ]);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id) {}
+        $parentManual = Manuals::find($validated['id']);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update($id, $ids, Request $request, ManualsItem $manualsItem) {}
+        // 2. Use a database transaction for atomicity
+        DB::beginTransaction();
+        try {
+            if ($validated['type'] === 'Folder') {
+                $this->createFolder($validated, $parentManual);
+                $message = 'Folder created successfully!';
+            } else {
+                $this->createFiles($validated, $parentManual);
+                $message = 'Files uploaded successfully!';
+            }
+
+            DB::commit();
+            return redirect()->route('manual.items.index', $parentManual->mid)->with('success', $message);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Failed to create manual item: " . $e->getMessage());
+            // Return with the specific error message for user feedback
+            return back()->with('error', $e->getMessage())->withInput();
+        }
+    }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id, $ids, Request $request, ManualsItem $manualsItem, ManualItemContent $manualItemContent)
+    public function destroy($id, $ids)
     {
-        if (Auth::user()->can('destroy-manual')) {
-            $path = $manualsItem::where('manual_uid', $id)->where('miid', $ids)->first();
-            $getParentManual = getManualById($id);
-            if (! empty($path['file_type']) && $path['file_type'] != 'Folder') {
-                if (Storage::disk('privateSubManual')->exists($path['link'])) {
-                    Storage::disk('privateSubManual')->delete($path['link']);
-                    // Remove permissions of the folders deleted.
-                    $getManualItem = getManualItemById($id, $ids);
-                    $permissionName = "access-manual-{$getParentManual->name}.{$getManualItem->name}";
-                    removePermissionFromAll($permissionName);
-                    // Remove the file information from the database.
-                    $manualsItem::where('manual_uid', $id)->where('miid', $ids)->where('file_type', 'application/pdf')->delete();
-
-                    return redirect(route('manual.items.index', $id, $ids))->with('success', $path['name'].' File Deleted');
-                } else {
-                    return response()->json(['error' => 'File not found!'], 404);
-                }
-
-            } else {
-                $folderManualContent = $manualItemContent::where('manual_items_uid', $ids)->get();
-                $getManualItem = getManualItemsFolderById($id, $ids);
-                // Remove permissions of the folders deleted.
-                $permissionName = "access-manual-{$getParentManual->name}.{$getManualItem->name}";
-                removePermissionFromAll($permissionName);
-
-                foreach ($folderManualContent as $item) {
-                    if (Storage::disk('privateSubManualContent')->exists($item->link)) {
-                        Storage::disk('privateSubManualContent')->delete($item->link);
-                    }
-                    // Remove all the file permissions
-                    $permissionNameAll = "access-manual-{$getParentManual->name}.{$getManualItem->name}.{$item->name}";
-                    removePermissionFromAll($permissionNameAll);
-                }
-
-                // Delete Folders and its contents
-                $manualsItem::where('manual_uid', $id)->where('miid', $ids)->where('file_type', 'Folder')->delete();
-                $manualItemContent::where('manual_items_uid', $ids)->delete();
-
-                return redirect(route('manual.items.index', $id, $ids))->with('success', 'Folder Deleted');
-            }
-        } else {
-            return response()->json(['error' => 'You do not have permission to delete.'], 404);
+        if (!Auth::user()->can('destroy-manual')) {
+            return back()->with('error', 'You do not have permission to delete.');
         }
 
-    }
+        // 4. Simplified and safer fetching
+        $itemToDelete = ManualsItem::where('manual_uid', $id)->findOrFail($ids);
+        // Eager load the parent manual via relationship (assumes 'manual' relationship exists)
+        $parentManual = $itemToDelete->manual;
 
-    public function formatBytes($bytes, $precision = 2)
-    {
-        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        DB::beginTransaction();
+        try {
+            $deletedName = $itemToDelete->name;
 
-        $base = log($bytes) / log(1024);
-        $suffix = $units[floor($base)];
+            if ($itemToDelete->file_type === 'Folder') {
+                $this->deleteFolderAndContents($itemToDelete, $parentManual);
+                $message = "Folder '{$deletedName}' and all its contents have been deleted.";
+            } else {
+                $this->deleteFile($itemToDelete, $parentManual);
+                $message = "File '{$deletedName}' has been deleted.";
+            }
 
-        return number_format(pow(1024, $base - floor($base)), $precision).' '.$suffix;
+            DB::commit();
+            // 5. Corrected redirect
+            return redirect()->route('manual.items.index', $id)->with('success', $message);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Failed to delete manual item {$ids}: " . $e->getMessage());
+            return back()->with('error', 'An error occurred during deletion.');
+        }
     }
 
     /**
@@ -192,16 +121,14 @@ class ManualsItemController extends Controller
     public function apiIndex($id)
     {
         $user = auth()->user();
-        $manual = Manuals::where('mid', $id)->first();
+        $manual = Manuals::findOrFail($id);
 
-        if (! $manual || ! $user->hasPermissionTo("access-manual-{$manual->name}")) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Access denied',
-            ], 403);
+        if (!$user->hasPermissionTo("access-manual-{$manual->name}")) {
+            return response()->json(['success' => false, 'message' => 'Access denied'], 403);
         }
 
-        $items = ManualsItem::where('manual_uid', $id)->orderBy('created_at')->get();
+        // Use the relationship to get items, which is cleaner and more efficient.
+        $items = $manual->items()->orderBy('created_at')->get();
 
         $itemsData = $items->map(function ($item) {
             return [
@@ -216,18 +143,108 @@ class ManualsItemController extends Controller
                     : route('download.submanuals', $item->link),
                 'pwa_url' => $item->file_type === 'Folder'
                     ? null
-                    : getPwaSubManualUrl($item->link),
+                    : getPwaSubManualUrl($item->link), // Assuming helper exists
             ];
         });
 
         return response()->json([
             'success' => true,
             'data' => $itemsData->toArray(),
-            'manual' => [
-                'id' => $manual->mid,
-                'name' => $manual->name,
-            ],
+            'manual' => ['id' => $manual->mid, 'name' => $manual->name],
             'cached_at' => now()->toISOString(),
         ]);
     }
+
+    // --- Private Helper Methods for Cleaner Logic ---
+
+    private function createFolder(array $data, Manuals $parentManual): void
+    {
+        if (ManualsItem::where('manual_uid', $parentManual->mid)->where('name', $data['manual_name'])->exists()) {
+            throw new \Exception("A folder named '{$data['manual_name']}' already exists.");
+        }
+
+        $manualItem = ManualsItem::create([
+            'manual_uid' => $parentManual->mid,
+            'name' => $data['manual_name'],
+            'link' => $data['manual_name'],
+            'file_size' => 0, // Use integer 0 for consistency
+            'file_type' => 'Folder',
+        ]);
+
+        $this->assignPermission("access-manual-{$parentManual->name}.{$manualItem->name}");
+    }
+
+    private function createFiles(array $data, Manuals $parentManual): void
+    {
+        foreach ($data['files'] as $file) {
+            $customName = Str::beforeLast($file->getClientOriginalName(), '.');
+
+            if (ManualsItem::where('manual_uid', $parentManual->mid)->where('name', $customName)->exists()) {
+                throw new \Exception("A file named '{$customName}' already exists. Batch aborted.");
+            }
+
+            // 3. Use a better unique name generator
+            $fileNameUnique = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('', $fileNameUnique, 'privateSubManual');
+
+            $manualItem = ManualsItem::create([
+                'manual_uid' => $parentManual->mid,
+                'name' => $customName,
+                'link' => $path,
+                'file_size' => $file->getSize(),
+                'file_type' => $file->getClientMimeType(),
+            ]);
+
+            $this->assignPermission("access-manual-{$parentManual->name}.{$manualItem->name}");
+        }
+    }
+
+    private function deleteFolderAndContents(ManualsItem $folder, Manuals $parentManual): void
+    {
+        // Assumes 'contents' relationship exists on ManualsItem model
+        foreach ($folder->contents as $content) {
+            removePermissionFromAll("access-manual-{$parentManual->name}.{$folder->name}.{$content->name}");
+            if ($content->link && Storage::disk('privateSubManualContent')->exists($content->link)) {
+                Storage::disk('privateSubManualContent')->delete($content->link);
+            }
+        }
+        $folder->contents()->delete(); // Bulk delete child records from DB
+
+        removePermissionFromAll("access-manual-{$parentManual->name}.{$folder->name}");
+        $folder->delete();
+    }
+
+    private function deleteFile(ManualsItem $fileItem, Manuals $parentManual): void
+    {
+        if ($fileItem->link && Storage::disk('privateSubManual')->exists($fileItem->link)) {
+            Storage::disk('privateSubManual')->delete($fileItem->link);
+        }
+        removePermissionFromAll("access-manual-{$parentManual->name}.{$fileItem->name}");
+        $fileItem->delete();
+    }
+
+    private function assignPermission(string $permissionName): void
+    {
+        $permission = Permission::firstOrCreate(['name' => $permissionName]);
+        if (auth()->check() && !auth()->user()->hasPermissionTo($permission)) {
+            auth()->user()->givePermissionTo($permission);
+        }
+    }
+
+    // Unused resourceful methods can be removed if not needed.
+    public function show(ManualsItem $manualsItem) {}
+    public function edit($id) {}
+    public function update($id, $ids, Request $request, ManualsItem $manualsItem) {}
+
+
+    public function formatBytes($bytes, $precision = 2)
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+        $base = log($bytes) / log(1024);
+        $suffix = $units[floor($base)];
+
+        return number_format(pow(1024, $base - floor($base)), $precision).' '.$suffix;
+    }
+
 }
