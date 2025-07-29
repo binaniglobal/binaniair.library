@@ -40,7 +40,7 @@ class ManualItemContentController extends Controller
         // --- 1. Improved Validation ---
         // We validate that the parent manual and item exist before proceeding.
         $validated = $request->validate([
-            'file' => 'required|array|max:5', // Ensure 'file' is a required array
+            'file' => 'required|array|max:'.env('FILE_SIZE', 40960), // Ensure 'file' is a required array
             'file.*' => ['required', 'file', 'mimes:pdf', 'max:'.env('FILE_SIZE', 40960)],
             'manual_uid' => 'required|string|exists:manuals,mid',
             'id' => 'required|string|exists:manuals_items,miid',

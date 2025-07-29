@@ -50,7 +50,7 @@ class ManualsItemController extends Controller
             'id' => 'required|string|exists:manuals,mid', // The parent manual ID
             'type' => 'required|string|in:Folder,File',
             'manual_name' => 'required_if:type,Folder|nullable|string|max:255',
-            'files' => 'required_if:type,File|nullable|array|max:10',
+            'files' => 'required_if:type,File|nullable|array|max:'.env('FILE_SIZE', 40960),
             'files.*' => 'required_if:type,File|nullable|file|mimes:pdf|max:'.env('FILE_SIZE', 40960),
         ]);
 
