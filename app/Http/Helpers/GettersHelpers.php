@@ -423,7 +423,9 @@ function verifyPwaToken($token)
         \Log::error('PWA token verification error: ' . $e->getMessage());
         return null;
     }
+}
 
+if (!function_exists('formatBytes')) {
     function formatBytes($bytes, int $precision = 2): string
     {
         $bytes = max($bytes, 0);
