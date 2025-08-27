@@ -301,8 +301,13 @@
 <!-- Main JS -->
 <script src="{{ asset('storage/assets/js/main.js') }}"></script>
 
+<!-- CryptoJS Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
 <!-- PWA Scripts -->
 <script src="{{ asset('js/pwa-storage.js') }}"></script>
+<script src="{{ asset('js/secure-viewer.js') }}"></script>
+<script src="{{ asset('js/security-fixes.js') }}"></script>
 @stack('scripts')
 <script>
     // Check if service workers are supported

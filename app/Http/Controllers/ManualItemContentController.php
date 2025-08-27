@@ -215,6 +215,89 @@ class ManualItemContentController extends Controller
         ]);
     }
 
+    /**
+     * API endpoint to get secure manual content for encrypted viewing
+     */
+    public function secureContent($id)
+    {
+        try {
+            $user = auth()->user();
+            $content = ManualItemContent::with(['item.manual'])->where('micd', $id)->first();
+
+            if (!$content) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Manual content not found'
+                ], 404);
+            }
+
+            // Check permissions
+            $parentManual = $content->item->manual;
+            $manualItem = $content->item;
+            $permissionName = "access-manual-{$parentManual->name}.{$manualItem->name}.{$content->name}";
+            
+            if (!$user->hasPermissionTo($permissionName)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Access denied'
+                ], 403);
+            }
+
+            // Get file path and validate it exists
+            $filePath = Storage::disk('privateSubManualContent')->path($content->link);
+            
+            if (!Storage::disk('privateSubManualContent')->exists($content->link)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File not found'
+                ], 404);
+            }
+
+            // Read file content as base64
+            $fileContent = Storage::disk('privateSubManualContent')->get($content->link);
+            $base64Content = base64_encode($fileContent);
+
+            // Log access for audit
+            Log::info("Secure manual content accessed", [
+                'user_id' => $user->id,
+                'content_id' => $content->micd,
+                'content_name' => $content->name,
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $base64Content,
+                'metadata' => [
+                    'name' => $content->name,
+                    'size' => $content->file_size,
+                    'type' => $content->file_type,
+                    'accessed_at' => now()->toISOString()
+                ]
+            ], 200, [
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0',
+                'X-Content-Type-Options' => 'nosniff',
+                'X-Frame-Options' => 'DENY',
+                'X-XSS-Protection' => '1; mode=block'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Secure manual content error: ' . $e->getMessage(), [
+                'content_id' => $id,
+                'user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Internal server error'
+            ], 500);
+        }
+    }
+
     // Unused resourceful methods can be removed if you don't plan to implement them.
     public function show(ManualItemContent $manualItemContent) {}
     public function edit(ManualItemContent $manualItemContent) {}

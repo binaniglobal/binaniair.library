@@ -41,6 +41,7 @@ Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian|user'])-
     Route::get('/api/manuals', [ManualsController::class, 'apiIndex'])->name('api.manuals');
     Route::get('/api/manual/{id}/items', [ManualsItemController::class, 'apiIndex'])->name('api.manual.items');
     Route::get('/api/manual-item/{id}/content', [ManualItemContentController::class, 'apiIndex'])->name('api.manual.content');
+    Route::get('/api/manual-content/{id}/secure', [ManualItemContentController::class, 'secureContent'])->name('api.manual.content.secure');
 
     // PWA Status page
     Route::get('/pwa-status', function () {
@@ -138,7 +139,6 @@ Route::middleware(['auth', 'role:super-admin'])->group(function () {
 
 Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian', 'redirect'])->group(function () {
     Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian'])->group(function () {
-
         // Add Users
         Route::get('/users', [UserController::class, 'index'])->middleware(['permission:view-user'])->name('users.index');
         Route::get('/users/add', [UserController::class, 'show'])->middleware(['permission:create-user'])->name('users.add');
@@ -161,33 +161,33 @@ Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian', 'redir
 // These routes use session middleware to ensure proper authentication
 Route::middleware(['web'])->group(function () {
     // Handle CORS preflight requests for local development
-    Route::options('/pwa/download/submanuals/{filename}', function ($filename) {
-        $headers = [];
-        if (app()->environment('local') || request()->getHost() === '127.0.0.10' || request()->getHost() === 'localhost') {
-            $headers = [
-                'Access-Control-Allow-Origin' => request()->getSchemeAndHttpHost(),
-                'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, X-PWA-Token, Authorization',
-                'Access-Control-Allow-Credentials' => 'true',
-                'Access-Control-Max-Age' => '86400',
-            ];
-        }
-        return response('', 200, $headers);
-    })->where('filename', '.*');
-
-    Route::options('/pwa/download/contents/{filename}', function ($filename) {
-        $headers = [];
-        if (app()->environment('local') || request()->getHost() === '127.0.0.10' || request()->getHost() === 'localhost') {
-            $headers = [
-                'Access-Control-Allow-Origin' => request()->getSchemeAndHttpHost(),
-                'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, X-PWA-Token, Authorization',
-                'Access-Control-Allow-Credentials' => 'true',
-                'Access-Control-Max-Age' => '86400',
-            ];
-        }
-        return response('', 200, $headers);
-    })->where('filename', '.*');
+//    Route::options('/pwa/download/submanuals/{filename}', function ($filename) {
+//        $headers = [];
+//        if (app()->environment('local') || request()->getHost() === '127.0.0.10' || request()->getHost() === 'localhost') {
+//            $headers = [
+//                'Access-Control-Allow-Origin' => request()->getSchemeAndHttpHost(),
+//                'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
+//                'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, X-PWA-Token, Authorization',
+//                'Access-Control-Allow-Credentials' => 'true',
+//                'Access-Control-Max-Age' => '86400',
+//            ];
+//        }
+//        return response('', 200, $headers);
+//    })->where('filename', '.*');
+//
+//    Route::options('/pwa/download/contents/{filename}', function ($filename) {
+//        $headers = [];
+//        if (app()->environment('local') || request()->getHost() === '127.0.0.10' || request()->getHost() === 'localhost') {
+//            $headers = [
+//                'Access-Control-Allow-Origin' => request()->getSchemeAndHttpHost(),
+//                'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
+//                'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, X-PWA-Token, Authorization',
+//                'Access-Control-Allow-Credentials' => 'true',
+//                'Access-Control-Max-Age' => '86400',
+//            ];
+//        }
+//        return response('', 200, $headers);
+//    })->where('filename', '.*');
 
     Route::get('/pwa/download/submanuals/{filename}', function ($filename) {
         // Decode the filename since it may be URL-encoded

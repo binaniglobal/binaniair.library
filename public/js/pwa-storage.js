@@ -174,6 +174,7 @@ class LibraryStorageManager {
                 name: content.name,
                 file_path: content.file_path,
                 content_type: content.content_type,
+                encrypted_data: content.encrypted_data, // Store encrypted data
                 cachedAt: new Date().toISOString(),
                 ...content
             };
@@ -187,6 +188,116 @@ class LibraryStorageManager {
 
             request.onerror = () => {
                 console.error('[LibraryStorage] Failed to store manual content:', request.error);
+                reject(request.error);
+            };
+        });
+    }
+
+    /**
+     * Store encrypted manual data
+     */
+    async storeEncryptedManual(manualData) {
+        if (!this.db) return false;
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['manualContent'], 'readwrite');
+            const store = transaction.objectStore('manualContent');
+            
+            const encryptedManualData = {
+                id: manualData.id,
+                item_uid: manualData.item_uid || manualData.id,
+                name: manualData.name,
+                encrypted_data: manualData.encrypted_data,
+                content_type: 'application/pdf',
+                is_encrypted: true,
+                encryption_timestamp: Date.now(),
+                cachedAt: new Date().toISOString()
+            };
+
+            const request = store.put(encryptedManualData);
+
+            request.onsuccess = () => {
+                console.log('[LibraryStorage] Encrypted manual stored successfully:', manualData.name);
+                resolve(true);
+            };
+
+            request.onerror = () => {
+                console.error('[LibraryStorage] Failed to store encrypted manual:', request.error);
+                reject(request.error);
+            };
+        });
+    }
+
+    /**
+     * Get encrypted manual data by ID
+     */
+    async getEncryptedManual(manualId) {
+        if (!this.db) return null;
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['manualContent'], 'readonly');
+            const store = transaction.objectStore('manualContent');
+            const request = store.get(manualId);
+
+            request.onsuccess = () => {
+                const result = request.result;
+                if (result && result.is_encrypted) {
+                    resolve(result);
+                } else {
+                    resolve(null);
+                }
+            };
+
+            request.onerror = () => {
+                console.error('[LibraryStorage] Failed to get encrypted manual:', request.error);
+                reject(request.error);
+            };
+        });
+    }
+
+    /**
+     * Clear expired encrypted data
+     */
+    async clearExpiredEncryption(maxAge = 24 * 60 * 60 * 1000) { // 24 hours default
+        if (!this.db) return false;
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['manualContent'], 'readwrite');
+            const store = transaction.objectStore('manualContent');
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                const allData = request.result;
+                const currentTime = Date.now();
+                let deletedCount = 0;
+
+                const deletePromises = allData
+                    .filter(item => {
+                        return item.is_encrypted && 
+                               item.encryption_timestamp && 
+                               (currentTime - item.encryption_timestamp) > maxAge;
+                    })
+                    .map(item => {
+                        return new Promise((deleteResolve, deleteReject) => {
+                            const deleteRequest = store.delete(item.id);
+                            deleteRequest.onsuccess = () => {
+                                deletedCount++;
+                                deleteResolve();
+                            };
+                            deleteRequest.onerror = () => deleteReject(deleteRequest.error);
+                        });
+                    });
+
+                Promise.all(deletePromises)
+                    .then(() => {
+                        console.log(`[LibraryStorage] Cleared ${deletedCount} expired encrypted items`);
+                        resolve(deletedCount);
+                    })
+                    .catch(reject);
+            };
+
+            request.onerror = () => {
+                console.error('[LibraryStorage] Failed to clear expired encryption:', request.error);
                 reject(request.error);
             };
         });

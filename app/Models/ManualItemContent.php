@@ -32,4 +32,20 @@ class ManualItemContent extends Model
     {
         return $this->belongsTo(ManualsItem::class, 'manual_items_uid', 'miid');
     }
+
+    /**
+     * Get the manual item that owns this content (alias for item())
+     */
+    public function manualItem()
+    {
+        return $this->belongsTo(ManualsItem::class, 'manual_items_uid', 'miid');
+    }
+
+    /**
+     * Get the manual that owns this content
+     */
+    public function manual()
+    {
+        return $this->belongsTo(Manuals::class, 'manual_uid', 'mid');
+    }
 }

@@ -27,7 +27,7 @@
                         @csrf
                         <h6>1. Account Details</h6>
                         <div class="row mb-3">
-                            <label class="col-sm-3 col-form-label" for="first_name">First Name</label>
+                            <label class="col-sm-3 col-form-label" for="first_name">Name</label>
                             <div class="col-sm-9">
                                 <input type="text" id="first_name" name="first_name" class="form-control"
                                        value="{{ old('first_name') ? old('first_name'):'' }}"
@@ -90,13 +90,12 @@
                                         data-style="btn-default"
                                         multiple
                                         data-actions-box="true">
-                                        @foreach($Permissions as $permission)
-                                            <optgroup label="Select multiple permissions for this position.">
+                                        <optgroup label="Select multiple permissions for this position.">
+                                            @foreach($Permissions as $permission)
                                                 <option
                                                     value="{{ $permission->uuid }}">{{ strtoupper($permission->name) }}</option>
-                                            </optgroup>
-                                        @endforeach
-
+                                            @endforeach
+                                        </optgroup>
                                     </select>
                                     <label for="selectpickerSelectDeselect">Select / Deselect All</label>
                                 </div>

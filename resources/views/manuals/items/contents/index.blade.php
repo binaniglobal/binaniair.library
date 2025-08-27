@@ -2,6 +2,7 @@
 @extends('layouts.app')
 
 @section('content')
+    @include('components.secure-manual-viewer')
     @push('styles')
         <!-- Vendors CSS -->
         <link rel="stylesheet" href="{{ url('storage/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}"/>
@@ -51,17 +52,26 @@
                                 <tr>
                                     <td>
                                         <div class="btn-group">
-                                            <a href="{{ route('download.contents', $items->link) }}">{{ $items->name }}</a>
                                             @if($items->file_type === 'application/pdf')
+                                                <button class="btn btn-link p-0 text-start secure-view-btn" 
+                                                        onclick="openSecureViewer('{{ $items->micd }}', '{{ $items->name }}')"
+                                                        title="View document securely">
+                                                    <i class="mdi mdi-shield-check text-success me-1"></i>
+                                                    {{ $items->name }}
+                                                </button>
                                                 &nbsp; &nbsp;
-                                                <button class="btn btn-sm btn-outline-primary cache-doc-btn"
+                                                <button class="btn btn-sm btn-outline-success secure-cache-btn"
                                                         data-doc-id="{{ $items->micd }}"
                                                         data-doc-name="{{ $items->name }}"
-                                                        data-doc-path="{{ $items->link }}"
-                                                        data-pwa-url="{{ getPwaSubManualContentUrl($items->link) }}"
-                                                        title="Cache this document for offline access">
-                                                    <i class="mdi mdi-download"></i>
+                                                        onclick="cacheSecureDocument('{{ $items->micd }}', '{{ $items->name }}')"
+                                                        title="Cache this document securely for offline access">
+                                                    <i class="mdi mdi-shield-lock"></i> Cache
                                                 </button>
+                                            @else
+                                                <span class="text-muted">
+                                                    <i class="mdi mdi-file me-1"></i>
+                                                    {{ $items->name }}
+                                                </span>
                                             @endif
                                         </div>
                                     </td>
@@ -238,6 +248,73 @@
                 }
                 return false;
             }
+
+            // Secure document caching function
+            window.cacheSecureDocument = async function(docId, docName) {
+                const $btn = $(`.secure-cache-btn[data-doc-id="${docId}"]`);
+                
+                try {
+                    // Show loading state
+                    const originalHtml = $btn.html();
+                    $btn.html('<i class="mdi mdi-loading mdi-spin"></i> Caching...');
+                    $btn.prop('disabled', true);
+
+                    // Get encryption key
+                    const encryptionKey = await window.secureViewer.getUserSessionKey();
+                    
+                    // Fetch document data from secure API
+                    const response = await fetch(`/api/manual-content/${docId}/secure`, {
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch document: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    
+                    if (!data.success) {
+                        throw new Error(data.message || 'Failed to fetch document data');
+                    }
+
+                    // Encrypt and store the document
+                    const encryptedData = await window.secureViewer.encryptData(data.data, encryptionKey);
+                    
+                    if (window.libraryStorage) {
+                        await window.libraryStorage.storeEncryptedManual({
+                            id: docId,
+                            name: docName,
+                            encrypted_data: encryptedData
+                        });
+                    }
+
+                    // Update button to show success
+                    $btn.html('<i class="mdi mdi-check"></i> Cached');
+                    $btn.removeClass('btn-outline-success').addClass('btn-success');
+                    
+                    showNotification('success', `Document "${docName}" cached securely!`);
+
+                    // Reset button after 3 seconds
+                    setTimeout(() => {
+                        $btn.html(originalHtml);
+                        $btn.removeClass('btn-success').addClass('btn-outline-success');
+                        $btn.prop('disabled', false);
+                    }, 3000);
+
+                } catch (error) {
+                    console.error('Failed to cache secure document:', error);
+                    showNotification('error', `Failed to cache "${docName}": ${error.message}`);
+                    
+                    // Reset button
+                    const originalHtml = $btn.data('original-html') || '<i class="mdi mdi-shield-lock"></i> Cache';
+                    $btn.html(originalHtml);
+                    $btn.prop('disabled', false);
+                }
+            };
 
             // Show notification function
             function showNotification(type, message) {
