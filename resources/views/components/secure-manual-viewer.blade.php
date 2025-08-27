@@ -83,6 +83,7 @@ class SecureManualViewer {
         this.modal = null;
         this.webview = null;
         this.currentManualId = null;
+        this.currentManualName = null; // Store the name for retries
         this.currentBlobUrl = null;
         this.retryCount = 0;
         this.maxRetries = 3;
@@ -126,6 +127,7 @@ class SecureManualViewer {
      */
     async loadManual(manualId, manualName) {
         try {
+            this.currentManualName = manualName;
             this.currentManualId = manualId;
             this.retryCount = 0;
 
@@ -183,8 +185,15 @@ class SecureManualViewer {
             }
             return null;
         } catch (error) {
-            console.warn('[SecureViewer] Failed to get from cache:', error);
+            console.warn('[SecureViewer] Failed to decrypt from cache (likely due to new session key). Clearing stale cache and re-fetching.', error);
+            // If decryption fails, the cache for this item is invalid (stale key).
+            // We delete it to prevent this error on subsequent loads.
+            if (window.libraryStorage) {
+                await window.libraryStorage.deleteManualContent(manualId);
+            }
+            // Return null to signal that a fresh copy must be fetched from the server.
             return null;
+
         }
     }
 
@@ -345,7 +354,7 @@ class SecureManualViewer {
     async retryManual() {
         if (this.retryCount < this.maxRetries && this.currentManualId) {
             this.retryCount++;
-            await this.loadManual(this.currentManualId, 'Manual');
+            await this.loadManual(this.currentManualId);
         } else {
             this.showErrorState('Maximum retry attempts reached. Please try again later.');
         }
@@ -362,6 +371,7 @@ class SecureManualViewer {
 
         this.webview.src = 'about:blank';
         this.currentManualId = null;
+        this.currentManualName = null;
         this.retryCount = 0;
 
         // Clear sensitive data
