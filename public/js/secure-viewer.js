@@ -14,7 +14,7 @@ class SecureViewer {
      * Derive encryption key from user session data
      */
     deriveKey(sessionToken, userId) {
-        const combined = `${sessionToken}_${userId}_${new Date().toDateString()}`;
+        const combined = `${sessionToken}_${userId}`;
         return CryptoJS.SHA256(combined).toString(CryptoJS.enc.Hex);
     }
 
@@ -27,7 +27,7 @@ class SecureViewer {
                 mode: CryptoJS.mode.CBC,
                 padding: CryptoJS.pad.Pkcs7
             });
-            
+
             return {
                 encrypted: encrypted.toString(),
                 timestamp: Date.now(),
@@ -52,14 +52,14 @@ class SecureViewer {
                 mode: CryptoJS.mode.CBC,
                 padding: CryptoJS.pad.Pkcs7
             });
-            
+
             const decryptedString = decrypted.toString(CryptoJS.enc.Utf8);
             if (!decryptedString) {
                 throw new Error('Failed to decrypt data - invalid key or corrupted data');
             }
 
             const data = JSON.parse(decryptedString);
-            
+
             // Verify data integrity
             const currentChecksum = CryptoJS.SHA256(JSON.stringify(data)).toString();
             if (currentChecksum !== encryptedData.checksum) {
@@ -100,10 +100,10 @@ class SecureViewer {
 
             // Create blob with proper MIME type
             const blob = new Blob([bytes], { type: mimeType });
-            
+
             // Create secure URL with expiration
             const blobUrl = URL.createObjectURL(blob);
-            
+
             // Auto-revoke URL after 5 minutes for security
             setTimeout(() => {
                 URL.revokeObjectURL(blobUrl);
@@ -146,7 +146,7 @@ class SecureViewer {
      * Validate encrypted data integrity
      */
     validateEncryptedData(encryptedData) {
-        return encryptedData && 
+        return encryptedData &&
                typeof encryptedData === 'object' &&
                encryptedData.encrypted &&
                encryptedData.checksum &&
@@ -182,25 +182,25 @@ window.preventDownloads = function() {
             e.preventDefault();
             return false;
         }
-        
+
         // Prevent Ctrl+Shift+S (Save As)
         if (e.ctrlKey && e.shiftKey && (e.key === 's' || e.key === 'S')) {
             e.preventDefault();
             return false;
         }
-        
+
         // Prevent F12 (Developer Tools)
         if (e.key === 'F12') {
             e.preventDefault();
             return false;
         }
-        
+
         // Prevent Ctrl+Shift+I (Developer Tools)
         if (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'I')) {
             e.preventDefault();
             return false;
         }
-        
+
         // Prevent Ctrl+U (View Source)
         if (e.ctrlKey && (e.key === 'u' || e.key === 'U')) {
             e.preventDefault();
