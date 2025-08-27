@@ -181,15 +181,14 @@ function downloadPwaSubManuals($fileName)
         \Log::info("Auth check: " . (Auth::check() ? 'YES' : 'NO'));
         \Log::info("Request headers: " . json_encode(request()->headers->all()));
         \Log::info("Request cookies: " . json_encode(request()->cookies->all()));
-        
+
         $authUser = null;
-        
+
         // Try session authentication first
         if (Auth::check()) {
             $authUser = Auth::user();
             \Log::info("PWA SubManual authenticated via session: {$authUser->name}");
-        } 
-        // If session auth fails, try token authentication
+        } // If session auth fails, try token authentication
         else {
             $token = request()->header('X-PWA-Token') ?? request()->query('pwa_token');
             \Log::info("PWA SubManual token check - Token present: " . (!empty($token) ? 'YES' : 'NO'));
@@ -203,7 +202,7 @@ function downloadPwaSubManuals($fileName)
                 }
             }
         }
-        
+
         // Check if user is authenticated by either method
         if (!$authUser) {
             \Log::warning("PWA SubManual access denied - not authenticated: {$fileName}");
@@ -222,29 +221,29 @@ function downloadPwaSubManuals($fileName)
                 ]
             ], 401);
         }
-        
+
         \Log::info("PWA SubManual request for: {$fileName} by user: {$authUser->name} (ID: {$authUser->id})");
-        
+
         $disk = Storage::disk('privateSubManual');
-        
+
         if (!$disk->exists($fileName)) {
             \Log::warning("PWA SubManual file not found: {$fileName}");
             \Log::info("Available files in directory: " . json_encode($disk->files()));
             return response()->json(['error' => 'File not found'], 404);
         }
-        
+
         $fileSize = $disk->size($fileName);
         $mimeType = $disk->mimeType($fileName);
         $filePath = $disk->path($fileName);
-        
+
         \Log::info("PWA SubManual file details - Size: {$fileSize}, MIME: {$mimeType}, Path: {$filePath}");
-        
+
         // Ensure it's a PDF file
         if ($mimeType !== 'application/pdf') {
             \Log::warning("PWA SubManual file is not PDF: {$fileName}, MIME: {$mimeType}");
             return response()->json(['error' => 'File is not a PDF', 'mime_type' => $mimeType], 400);
         }
-        
+
         $headers = [
             'Content-Type' => 'application/pdf',
             'Cache-Control' => 'public, max-age=31536000', // Cache for 1 year
@@ -252,7 +251,7 @@ function downloadPwaSubManuals($fileName)
             'Content-Length' => $fileSize,
             'Accept-Ranges' => 'bytes',
         ];
-        
+
         // Add CORS headers for local development
         if (app()->environment('local') || request()->getHost() === '127.0.0.10' || request()->getHost() === 'localhost') {
             $headers['Access-Control-Allow-Origin'] = request()->getSchemeAndHttpHost();
@@ -260,13 +259,13 @@ function downloadPwaSubManuals($fileName)
             $headers['Access-Control-Allow-Headers'] = 'X-Requested-With, Content-Type, X-PWA-Token, Authorization';
             $headers['Access-Control-Allow-Credentials'] = 'true';
         }
-        
+
         // Always serve as inline for PWA caching
         $headers['Content-Disposition'] = 'inline; filename="' . basename($fileName) . '"';
-        
+
         \Log::info("PWA SubManual serving file: {$fileName}");
         return response()->file($filePath, $headers);
-        
+
     } catch (\Exception $e) {
         \Log::error("PWA SubManual error for {$fileName}: " . $e->getMessage());
         return response()->json(['error' => 'Internal server error', 'message' => $e->getMessage()], 500);
@@ -282,15 +281,14 @@ function downloadPwaSubManualsContent($fileName)
         \Log::info("Auth check: " . (Auth::check() ? 'YES' : 'NO'));
         \Log::info("Request headers: " . json_encode(request()->headers->all()));
         \Log::info("Request cookies: " . json_encode(request()->cookies->all()));
-        
+
         $authUser = null;
-        
+
         // Try session authentication first
         if (Auth::check()) {
             $authUser = Auth::user();
             \Log::info("PWA SubManualContent authenticated via session: {$authUser->name}");
-        } 
-        // If session auth fails, try token authentication
+        } // If session auth fails, try token authentication
         else {
             $token = request()->header('X-PWA-Token') ?? request()->query('pwa_token');
             \Log::info("PWA SubManualContent token check - Token present: " . (!empty($token) ? 'YES' : 'NO'));
@@ -304,7 +302,7 @@ function downloadPwaSubManualsContent($fileName)
                 }
             }
         }
-        
+
         // Check if user is authenticated by either method
         if (!$authUser) {
             \Log::warning("PWA SubManualContent access denied - not authenticated: {$fileName}");
@@ -323,29 +321,29 @@ function downloadPwaSubManualsContent($fileName)
                 ]
             ], 401);
         }
-        
+
         \Log::info("PWA SubManualContent request for: {$fileName} by user: {$authUser->name} (ID: {$authUser->id})");
-        
+
         $disk = Storage::disk('privateSubManualContent');
-        
+
         if (!$disk->exists($fileName)) {
             \Log::warning("PWA SubManualContent file not found: {$fileName}");
             \Log::info("Available files in directory: " . json_encode($disk->files()));
             return response()->json(['error' => 'File not found'], 404);
         }
-        
+
         $fileSize = $disk->size($fileName);
         $mimeType = $disk->mimeType($fileName);
         $filePath = $disk->path($fileName);
-        
+
         \Log::info("PWA SubManualContent file details - Size: {$fileSize}, MIME: {$mimeType}, Path: {$filePath}");
-        
+
         // Ensure it's a PDF file
         if ($mimeType !== 'application/pdf') {
             \Log::warning("PWA SubManualContent file is not PDF: {$fileName}, MIME: {$mimeType}");
             return response()->json(['error' => 'File is not a PDF', 'mime_type' => $mimeType], 400);
         }
-        
+
         $headers = [
             'Content-Type' => 'application/pdf',
             'Cache-Control' => 'public, max-age=31536000', // Cache for 1 year
@@ -353,7 +351,7 @@ function downloadPwaSubManualsContent($fileName)
             'Content-Length' => $fileSize,
             'Accept-Ranges' => 'bytes',
         ];
-        
+
         // Add CORS headers for local development
         if (app()->environment('local') || request()->getHost() === '127.0.0.10' || request()->getHost() === 'localhost') {
             $headers['Access-Control-Allow-Origin'] = request()->getSchemeAndHttpHost();
@@ -361,13 +359,13 @@ function downloadPwaSubManualsContent($fileName)
             $headers['Access-Control-Allow-Headers'] = 'X-Requested-With, Content-Type, X-PWA-Token, Authorization';
             $headers['Access-Control-Allow-Credentials'] = 'true';
         }
-        
+
         // Always serve as inline for PWA caching
         $headers['Content-Disposition'] = 'inline; filename="' . basename($fileName) . '"';
-        
+
         \Log::info("PWA SubManualContent serving file: {$fileName}");
         return response()->file($filePath, $headers);
-        
+
     } catch (\Exception $e) {
         \Log::error("PWA SubManualContent error for {$fileName}: " . $e->getMessage());
         return response()->json(['error' => 'Internal server error', 'message' => $e->getMessage()], 500);
@@ -386,29 +384,29 @@ function verifyPwaToken($token)
             \Log::warning('Invalid PWA token format');
             return null;
         }
-        
+
         [$tokenData, $signature] = $parts;
-        
+
         // Verify signature
         $expectedSignature = hash_hmac('sha256', $tokenData, config('app.key'));
         if (!hash_equals($expectedSignature, $signature)) {
             \Log::warning('Invalid PWA token signature');
             return null;
         }
-        
+
         // Decode token data
         $data = json_decode(base64_decode($tokenData), true);
         if (!$data) {
             \Log::warning('Invalid PWA token data');
             return null;
         }
-        
+
         // Check expiration
         if (isset($data['expires_at']) && $data['expires_at'] < time()) {
             \Log::warning('PWA token has expired');
             return null;
         }
-        
+
         // Get user
         if (isset($data['user_id'])) {
             $user = User::where('uuid', $data['user_id'])->first();
@@ -417,12 +415,25 @@ function verifyPwaToken($token)
                 return $user;
             }
         }
-        
+
         \Log::warning('PWA token user not found');
         return null;
-        
+
     } catch (\Exception $e) {
         \Log::error('PWA token verification error: ' . $e->getMessage());
         return null;
     }
+
+    function formatBytes($bytes, int $precision = 2): string
+    {
+        $bytes = max($bytes, 0);
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+
+        $bytes /= (1 << (10 * $pow));
+
+        return round($bytes, $precision) . ' ' . $units[$pow];
+    }
+
 }
