@@ -186,10 +186,23 @@ class SecureManualViewer {
             return null;
         } catch (error) {
             console.warn('[SecureViewer] Failed to decrypt from cache (likely due to new session key). Clearing stale cache and re-fetching.', error);
-            // If decryption fails, the cache for this item is invalid (stale key).
-            // We delete it to prevent this error on subsequent loads.
-            if (window.libraryStorage) {
-                await window.libraryStorage.removeManualContent(manualId); // Assumed fix
+            // If decryption fails, the cache for this item is invalid. We must attempt to delete it.
+            // A TypeError here was preventing the app from fetching a fresh copy from the server.
+            try {
+                if (window.libraryStorage) {
+                    // The function to delete from cache is unknown. The previous assumption 'removeManualContent' was incorrect.
+                    // We will try a few common API method names. If none work, the try/catch prevents a crash.
+                    const deleteFn = window.libraryStorage.delete || window.libraryStorage.removeItem || window.libraryStorage.del;
+                    if (typeof deleteFn === 'function') {
+                        // The `bind` is important to preserve the `this` context of the libraryStorage object.
+                        await deleteFn.bind(window.libraryStorage)(manualId);
+                        console.log('[SecureViewer] Stale cache item successfully removed.');
+                    } else {
+                        console.warn('[SecureViewer] Could not find a function to delete stale cache item (tried: delete, removeItem, del).');
+                    }
+                }
+            } catch (cleanupError) {
+                console.warn('[SecureViewer] An error occurred while trying to clean up stale cache.', cleanupError);
             }
             // Return null to signal that a fresh copy must be fetched from the server.
             return null;
