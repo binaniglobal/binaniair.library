@@ -152,7 +152,7 @@ class SecureManualViewer {
                 manualData = await this.fetchManualFromServer(manualId);
 
                 // Encrypt and cache
-                await this.encryptAndCache(manualId, manualData, encryptionKey);
+                await this.encryptAndCache(manualId, manualData, encryptionKey, manualName);
             }
 
             // Create secure blob URL
@@ -189,7 +189,7 @@ class SecureManualViewer {
             // If decryption fails, the cache for this item is invalid (stale key).
             // We delete it to prevent this error on subsequent loads.
             if (window.libraryStorage) {
-                await window.libraryStorage.deleteManualContent(manualId);
+                await window.libraryStorage.removeManualContent(manualId); // Assumed fix
             }
             // Return null to signal that a fresh copy must be fetched from the server.
             return null;
@@ -225,7 +225,7 @@ class SecureManualViewer {
     /**
      * Encrypt and cache manual data
      */
-    async encryptAndCache(manualId, manualData, encryptionKey) {
+    async encryptAndCache(manualId, manualData, encryptionKey, manualName) {
         try {
             const encryptedData = await window.secureViewer.encryptData(manualData, encryptionKey);
 
@@ -233,7 +233,7 @@ class SecureManualViewer {
                 await window.libraryStorage.storeManualContent({
                     id: manualId,
                     item_uid: manualId,
-                    name: `Manual_${manualId}`,
+                    name: manualName || `Manual_${manualId}`, // Use the real name, with a fallback
                     encrypted_data: encryptedData,
                     content_type: 'application/pdf',
                     cached_at: new Date().toISOString()
