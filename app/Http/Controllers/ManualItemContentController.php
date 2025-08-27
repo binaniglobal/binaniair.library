@@ -276,9 +276,8 @@ class ManualItemContentController extends Controller
                 'Cache-Control' => 'no-cache, no-store, must-revalidate',
                 'Pragma' => 'no-cache',
                 'Expires' => '0',
-                'X-Content-Type-Options' => 'nosniff',
-                'X-Frame-Options' => 'DENY',
-                'X-XSS-Protection' => '1; mode=block'
+                'X-Content-Type-Options' => 'nosniff'
+                // 'X-Frame-Options' and 'X-XSS-Protection' are removed as they are not appropriate for a JSON API response.
             ]);
 
         } catch (\Exception $e) {
