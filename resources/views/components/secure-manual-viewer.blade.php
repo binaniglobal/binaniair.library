@@ -40,13 +40,17 @@
                 </div>
 
                 <!-- Secure WebView Container -->
-                <iframe 
-                    id="secure-manual-webview" 
-                    sandbox="allow-scripts allow-same-origin allow-popups-to-escape-sandbox"
+                <iframe
+                    id="secure-manual-webview"
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
                     style="width: 100%; height: 80vh; border: none; display: none;"
                     allow="fullscreen"
                     loading="lazy">
                 </iframe>
+
+
+
+
             </div>
             <div class="modal-footer bg-light">
                 <div class="d-flex justify-content-between align-items-center w-100">
@@ -81,7 +85,7 @@ class SecureManualViewer {
         this.currentBlobUrl = null;
         this.retryCount = 0;
         this.maxRetries = 3;
-        
+
         this.initializeComponents();
         this.setupEventListeners();
     }
@@ -123,7 +127,7 @@ class SecureManualViewer {
         try {
             this.currentManualId = manualId;
             this.retryCount = 0;
-            
+
             // Update modal title
             document.getElementById('secureManualModalLabel').innerHTML = `
                 <i class="mdi mdi-shield-check me-2"></i>
@@ -136,24 +140,24 @@ class SecureManualViewer {
 
             // Get encryption key
             const encryptionKey = await window.secureViewer.getUserSessionKey();
-            
+
             // Try to get from cache first
             let manualData = await this.getFromEncryptedCache(manualId, encryptionKey);
-            
+
             if (!manualData) {
                 // Fetch from server
                 manualData = await this.fetchManualFromServer(manualId);
-                
+
                 // Encrypt and cache
                 await this.encryptAndCache(manualId, manualData, encryptionKey);
             }
 
             // Create secure blob URL
             this.currentBlobUrl = window.secureViewer.createSecureBlobUrl(manualData);
-            
+
             // Load in webview
             await this.loadInWebview(this.currentBlobUrl);
-            
+
         } catch (error) {
             console.error('[SecureViewer] Failed to load manual:', error);
             this.showErrorState(error.message);
@@ -167,10 +171,10 @@ class SecureManualViewer {
         try {
             if (window.libraryStorage) {
                 const encryptedData = await window.libraryStorage.getManualContent(manualId);
-                
+
                 if (encryptedData && encryptedData.length > 0) {
                     const cachedManual = encryptedData[0];
-                    
+
                     if (window.secureViewer.validateEncryptedData(cachedManual.encrypted_data)) {
                         return await window.secureViewer.decryptData(cachedManual.encrypted_data, encryptionKey);
                     }
@@ -200,7 +204,7 @@ class SecureManualViewer {
         }
 
         const data = await response.json();
-        
+
         if (!data.success) {
             throw new Error(data.message || 'Failed to fetch manual data');
         }
@@ -214,7 +218,7 @@ class SecureManualViewer {
     async encryptAndCache(manualId, manualData, encryptionKey) {
         try {
             const encryptedData = await window.secureViewer.encryptData(manualData, encryptionKey);
-            
+
             if (window.libraryStorage) {
                 await window.libraryStorage.storeManualContent({
                     id: manualId,
@@ -256,7 +260,7 @@ class SecureManualViewer {
 
             this.webview.addEventListener('load', onLoad);
             this.webview.addEventListener('error', onError);
-            
+
             // Set the blob URL
             this.webview.src = blobUrl;
         });
@@ -291,7 +295,7 @@ class SecureManualViewer {
         document.getElementById('manual-error-state').style.display = 'none';
         document.getElementById('secure-manual-webview').style.display = 'block';
         document.getElementById('manual-loading-indicator').style.display = 'none';
-        
+
         // Apply additional security to webview content
         this.applyWebviewSecurity();
     }
@@ -310,19 +314,19 @@ class SecureManualViewer {
         try {
             // Inject security script into webview if possible
             const webviewDocument = this.webview.contentDocument || this.webview.contentWindow.document;
-            
+
             if (webviewDocument) {
                 const securityScript = webviewDocument.createElement('script');
                 securityScript.textContent = `
                     // Disable right-click
                     document.addEventListener('contextmenu', e => e.preventDefault());
-                    
+
                     // Disable text selection
                     document.addEventListener('selectstart', e => e.preventDefault());
-                    
+
                     // Disable drag and drop
                     document.addEventListener('dragstart', e => e.preventDefault());
-                    
+
                     // Override print
                     window.print = () => console.warn('Printing disabled');
                 `;
@@ -354,11 +358,11 @@ class SecureManualViewer {
             URL.revokeObjectURL(this.currentBlobUrl);
             this.currentBlobUrl = null;
         }
-        
+
         this.webview.src = 'about:blank';
         this.currentManualId = null;
         this.retryCount = 0;
-        
+
         // Clear sensitive data
         window.secureViewer.clearSensitiveData();
     }
@@ -392,7 +396,7 @@ window.openSecureViewer = function(manualId, manualName) {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    
+
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
 }
