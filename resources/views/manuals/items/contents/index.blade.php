@@ -59,13 +59,13 @@
                                                     {{ $items->name }}
                                                 </a>
                                                 &nbsp; &nbsp;
-                                                <button class="btn btn-sm btn-outline-success secure-cache-btn"
-                                                        data-doc-id="{{ $items->micd }}"
-                                                        data-doc-name="{{ $items->name }}"
-                                                        onclick="cacheSecureDocument('{{ $items->micd }}', '{{ $items->name }}')"
-                                                        title="Cache this document securely for offline access">
-                                                    <i class="mdi mdi-shield-lock"></i> Cache
-                                                </button>
+{{--                                                <button class="btn btn-sm btn-outline-success secure-cache-btn"--}}
+{{--                                                        data-doc-id="{{ $items->micd }}"--}}
+{{--                                                        data-doc-name="{{ $items->name }}"--}}
+{{--                                                        onclick="cacheSecureDocument('{{ $items->micd }}', '{{ $items->name }}')"--}}
+{{--                                                        title="Cache this document securely for offline access">--}}
+{{--                                                    <i class="mdi mdi-shield-lock"></i> Cache--}}
+{{--                                                </button>--}}
                                             @else
                                                 <span class="text-muted">
                                                     <i class="mdi mdi-file me-1"></i>
