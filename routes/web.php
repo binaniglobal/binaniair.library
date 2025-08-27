@@ -41,7 +41,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/manuals', [ManualsController::class, 'apiIndex'])->name('api.manuals');
     Route::get('/api/manual/{id}/items', [ManualsItemController::class, 'apiIndex'])->name('api.manual.items');
     Route::get('/api/manual-item/{id}/content', [ManualItemContentController::class, 'apiIndex'])->name('api.manual.content');
-    Route::get('/api/manual-content/{id}/secure', [ManualItemContentController::class, 'secureContent'])->name('api.manual.content.secure');
 
     // PWA Status page
     Route::get('/pwa-status', function () {
