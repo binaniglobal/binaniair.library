@@ -31,7 +31,7 @@ Route::get('/maintenance/up', function () {
 });
 
 // Route::middleware(['auth','role:super-admin|admin|librarian|user', 'verified'])->group(function () {
-Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian|user'])->group(function () {
+Route::middleware(['auth'])->group(function () {
 
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/manual/sub-manuals/file/{filename}', [HomeController::class, 'downloadSubManuals'])->name('download.submanuals');
@@ -76,17 +76,17 @@ Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian|user'])-
         ]);
     })->name('pwa.auth.token');
 
-    // Debug route to test URL encoding
-    Route::get('/debug-pwa-url/{filename}', function ($filename) {
-        return response()->json([
-            'original_filename' => $filename,
-            'url_decoded' => urldecode($filename),
-            'url_encoded' => urlencode($filename),
-            'pwa_submanual_url' => getPwaSubManualUrl($filename),
-            'file_exists' => Storage::disk('privateSubManual')->exists($filename),
-            'file_exists_decoded' => Storage::disk('privateSubManual')->exists(urldecode($filename)),
-        ]);
-    })->name('debug.pwa.url');
+//    // Debug route to test URL encoding
+//    Route::get('/debug-pwa-url/{filename}', function ($filename) {
+//        return response()->json([
+//            'original_filename' => $filename,
+//            'url_decoded' => urldecode($filename),
+//            'url_encoded' => urlencode($filename),
+//            'pwa_submanual_url' => getPwaSubManualUrl($filename),
+//            'file_exists' => Storage::disk('privateSubManual')->exists($filename),
+//            'file_exists_decoded' => Storage::disk('privateSubManual')->exists(urldecode($filename)),
+//        ]);
+//    })->name('debug.pwa.url');
 
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::put('/update', [ProfileController::class, 'update'])->name('profile.update');
