@@ -56,17 +56,17 @@
                                             {{--                                            <a href="{{ asset(str_replace('public/', 'storage/',$items->link)) }}">{{ $items->name }}</a>--}}
                                             <div class="btn-group">
                                                 <a href="{{ route('download.submanuals',$items->link) }}">{{ $items->name }}</a>
-                                                @if($items->file_type === 'application/pdf')
-                                                    &nbsp; &nbsp;
-                                                    <button class=" badge btn-primary cache-doc-btn"
-                                                            data-doc-id="{{ $items->miid }}"
-                                                            data-doc-name="{{ $items->name }}"
-                                                            data-doc-path="{{ $items->link }}"
-                                                            data-pwa-url="{{ getPwaSubManualUrl($items->link) }}"
-                                                            title="Cache this document for offline access">
-                                                        <i class="mdi mdi-download"></i>
-                                                    </button>
-                                                @endif
+{{--                                                @if($items->file_type === 'application/pdf')--}}
+{{--                                                    &nbsp; &nbsp;--}}
+{{--                                                    <button class=" badge btn-primary cache-doc-btn"--}}
+{{--                                                            data-doc-id="{{ $items->miid }}"--}}
+{{--                                                            data-doc-name="{{ $items->name }}"--}}
+{{--                                                            data-doc-path="{{ $items->link }}"--}}
+{{--                                                            data-pwa-url="{{ getPwaSubManualUrl($items->link) }}"--}}
+{{--                                                            title="Cache this document for offline access">--}}
+{{--                                                        <i class="mdi mdi-download"></i>--}}
+{{--                                                    </button>--}}
+{{--                                                @endif--}}
                                             </div>
                                         </td>
                                     @endif
