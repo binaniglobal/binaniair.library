@@ -235,17 +235,14 @@ class ManualItemContentController extends Controller
             $parentManual = $content->item->manual;
             $manualItem = $content->item;
             $permissionName = "access-manual-{$parentManual->name}.{$manualItem->name}.{$content->name}";
-            
-            if (!$user->hasPermissionTo($permissionName)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Access denied'
-                ], 403);
-            }
 
-            // Get file path and validate it exists
-            $filePath = Storage::disk('privateSubManualContent')->path($content->link);
-            
+//            if (!$user->hasPermissionTo($permissionName)) {
+//                return response()->json([
+//                    'success' => false,
+//                    'message' => 'Access denied'
+//                ], 403);
+//            }
+
             if (!Storage::disk('privateSubManualContent')->exists($content->link)) {
                 return response()->json([
                     'success' => false,
