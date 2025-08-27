@@ -354,7 +354,7 @@ class SecureManualViewer {
     async retryManual() {
         if (this.retryCount < this.maxRetries && this.currentManualId) {
             this.retryCount++;
-            await this.loadManual(this.currentManualId);
+            await this.loadManual(this.currentManualId, this.currentManualName);
         } else {
             this.showErrorState('Maximum retry attempts reached. Please try again later.');
         }
