@@ -53,12 +53,11 @@
                                     <td>
                                         <div class="btn-group">
                                             @if($items->file_type === 'application/pdf')
-                                                <button class="btn btn-link p-0 text-start secure-view-btn" 
-                                                        onclick="openSecureViewer('{{ $items->micd }}', '{{ $items->name }}')"
-                                                        title="View document securely">
+                                                <a class="btn btn-link p-0 text-start secure-view-btn"
+                                                    href="{{ route('download.contents',$items->link) }}">
                                                     <i class="mdi mdi-shield-check text-success me-1"></i>
                                                     {{ $items->name }}
-                                                </button>
+                                                </a>
                                                 &nbsp; &nbsp;
                                                 <button class="btn btn-sm btn-outline-success secure-cache-btn"
                                                         data-doc-id="{{ $items->micd }}"
@@ -252,7 +251,7 @@
             // Secure document caching function
             window.cacheSecureDocument = async function(docId, docName) {
                 const $btn = $(`.secure-cache-btn[data-doc-id="${docId}"]`);
-                
+
                 try {
                     // Show loading state
                     const originalHtml = $btn.html();
@@ -261,7 +260,7 @@
 
                     // Get encryption key
                     const encryptionKey = await window.secureViewer.getUserSessionKey();
-                    
+
                     // Fetch document data from secure API
                     const response = await fetch(`/api/manual-content/${docId}/secure`, {
                         credentials: 'same-origin',
@@ -276,14 +275,14 @@
                     }
 
                     const data = await response.json();
-                    
+
                     if (!data.success) {
                         throw new Error(data.message || 'Failed to fetch document data');
                     }
 
                     // Encrypt and store the document
                     const encryptedData = await window.secureViewer.encryptData(data.data, encryptionKey);
-                    
+
                     if (window.libraryStorage) {
                         await window.libraryStorage.storeEncryptedManual({
                             id: docId,
@@ -295,7 +294,7 @@
                     // Update button to show success
                     $btn.html('<i class="mdi mdi-check"></i> Cached');
                     $btn.removeClass('btn-outline-success').addClass('btn-success');
-                    
+
                     showNotification('success', `Document "${docName}" cached securely!`);
 
                     // Reset button after 3 seconds
@@ -308,7 +307,7 @@
                 } catch (error) {
                     console.error('Failed to cache secure document:', error);
                     showNotification('error', `Failed to cache "${docName}": ${error.message}`);
-                    
+
                     // Reset button
                     const originalHtml = $btn.data('original-html') || '<i class="mdi mdi-shield-lock"></i> Cache';
                     $btn.html(originalHtml);
