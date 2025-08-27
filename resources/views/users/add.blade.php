@@ -90,12 +90,12 @@
                                         data-style="btn-default"
                                         multiple
                                         data-actions-box="true">
-                                        <optgroup label="Select multiple permissions for this position.">
+{{--                                        <optgroup label="Select multiple permissions for this position.">--}}
                                             @foreach($Permissions as $permission)
                                                 <option
                                                     value="{{ $permission->uuid }}">{{ strtoupper($permission->name) }}</option>
                                             @endforeach
-                                        </optgroup>
+{{--                                        </optgroup>--}}
                                     </select>
                                     <label for="selectpickerSelectDeselect">Select / Deselect All</label>
                                 </div>
