@@ -42,7 +42,8 @@
                 <!-- Secure WebView Container -->
                 <iframe
                     id="secure-manual-webview"
-                    sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+                    {{-- The 'allow-same-origin' token has been removed to prevent the iframe from escaping its sandbox, which is a critical security risk. --}}
+                    sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
                     style="width: 100%; height: 80vh; border: none; display: none;"
                     allow="fullscreen"
                     loading="lazy">
