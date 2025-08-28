@@ -52,7 +52,7 @@ Route::middleware(['auth'])->group(function () {
     // PWA Authentication token endpoint
     Route::get('/pwa/auth-token', function () {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return response()->json(['error' => 'Not authenticated'], 401);
         }
 
@@ -60,7 +60,7 @@ Route::middleware(['auth'])->group(function () {
         $tokenData = [
             'user_id' => $user->uuid,
             'session_id' => session()->getId(),
-            'expires_at' => now()->addHours(24)->timestamp
+            'expires_at' => now()->addHours(24)->timestamp,
         ];
 
         // Create a signed token
@@ -68,26 +68,26 @@ Route::middleware(['auth'])->group(function () {
         $signature = hash_hmac('sha256', $token, config('app.key'));
 
         return response()->json([
-            'token' => $token . '.' . $signature,
+            'token' => $token.'.'.$signature,
             'expires_at' => $tokenData['expires_at'],
             'user' => [
                 'id' => $user->uuid,
-                'name' => $user->name
-            ]
+                'name' => $user->name,
+            ],
         ]);
     })->name('pwa.auth.token');
 
-//    // Debug route to test URL encoding
-//    Route::get('/debug-pwa-url/{filename}', function ($filename) {
-//        return response()->json([
-//            'original_filename' => $filename,
-//            'url_decoded' => urldecode($filename),
-//            'url_encoded' => urlencode($filename),
-//            'pwa_submanual_url' => getPwaSubManualUrl($filename),
-//            'file_exists' => Storage::disk('privateSubManual')->exists($filename),
-//            'file_exists_decoded' => Storage::disk('privateSubManual')->exists(urldecode($filename)),
-//        ]);
-//    })->name('debug.pwa.url');
+    //    // Debug route to test URL encoding
+    //    Route::get('/debug-pwa-url/{filename}', function ($filename) {
+    //        return response()->json([
+    //            'original_filename' => $filename,
+    //            'url_decoded' => urldecode($filename),
+    //            'url_encoded' => urlencode($filename),
+    //            'pwa_submanual_url' => getPwaSubManualUrl($filename),
+    //            'file_exists' => Storage::disk('privateSubManual')->exists($filename),
+    //            'file_exists_decoded' => Storage::disk('privateSubManual')->exists(urldecode($filename)),
+    //        ]);
+    //    })->name('debug.pwa.url');
 
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::put('/update', [ProfileController::class, 'update'])->name('profile.update');
@@ -164,43 +164,45 @@ Route::middleware(['auth', 'role:super-admin|SuperAdmin|admin|librarian', 'redir
 // These routes use session middleware to ensure proper authentication
 Route::middleware(['web'])->group(function () {
     // Handle CORS preflight requests for local development
-//    Route::options('/pwa/download/submanuals/{filename}', function ($filename) {
-//        $headers = [];
-//        if (app()->environment('local') || request()->getHost() === '127.0.0.10' || request()->getHost() === 'localhost') {
-//            $headers = [
-//                'Access-Control-Allow-Origin' => request()->getSchemeAndHttpHost(),
-//                'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
-//                'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, X-PWA-Token, Authorization',
-//                'Access-Control-Allow-Credentials' => 'true',
-//                'Access-Control-Max-Age' => '86400',
-//            ];
-//        }
-//        return response('', 200, $headers);
-//    })->where('filename', '.*');
-//
-//    Route::options('/pwa/download/contents/{filename}', function ($filename) {
-//        $headers = [];
-//        if (app()->environment('local') || request()->getHost() === '127.0.0.10' || request()->getHost() === 'localhost') {
-//            $headers = [
-//                'Access-Control-Allow-Origin' => request()->getSchemeAndHttpHost(),
-//                'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
-//                'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, X-PWA-Token, Authorization',
-//                'Access-Control-Allow-Credentials' => 'true',
-//                'Access-Control-Max-Age' => '86400',
-//            ];
-//        }
-//        return response('', 200, $headers);
-//    })->where('filename', '.*');
+    //    Route::options('/pwa/download/submanuals/{filename}', function ($filename) {
+    //        $headers = [];
+    //        if (app()->environment('local') || request()->getHost() === '127.0.0.10' || request()->getHost() === 'localhost') {
+    //            $headers = [
+    //                'Access-Control-Allow-Origin' => request()->getSchemeAndHttpHost(),
+    //                'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
+    //                'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, X-PWA-Token, Authorization',
+    //                'Access-Control-Allow-Credentials' => 'true',
+    //                'Access-Control-Max-Age' => '86400',
+    //            ];
+    //        }
+    //        return response('', 200, $headers);
+    //    })->where('filename', '.*');
+    //
+    //    Route::options('/pwa/download/contents/{filename}', function ($filename) {
+    //        $headers = [];
+    //        if (app()->environment('local') || request()->getHost() === '127.0.0.10' || request()->getHost() === 'localhost') {
+    //            $headers = [
+    //                'Access-Control-Allow-Origin' => request()->getSchemeAndHttpHost(),
+    //                'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
+    //                'Access-Control-Allow-Headers' => 'X-Requested-With, Content-Type, X-PWA-Token, Authorization',
+    //                'Access-Control-Allow-Credentials' => 'true',
+    //                'Access-Control-Max-Age' => '86400',
+    //            ];
+    //        }
+    //        return response('', 200, $headers);
+    //    })->where('filename', '.*');
 
     Route::get('/pwa/download/submanuals/{filename}', function ($filename) {
         // Decode the filename since it may be URL-encoded
         $decodedFilename = urldecode($filename);
+
         return downloadPwaSubManuals($decodedFilename);
     })->name('pwa.download.submanuals')->where('filename', '.*');
 
     Route::get('/pwa/download/contents/{filename}', function ($filename) {
         // Decode the filename since it may be URL-encoded
         $decodedFilename = urldecode($filename);
+
         return downloadPwaSubManualsContent($decodedFilename);
     })->name('pwa.download.contents')->where('filename', '.*');
 });

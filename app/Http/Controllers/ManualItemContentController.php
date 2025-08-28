@@ -70,11 +70,12 @@ class ManualItemContentController extends Controller
                 // Check for duplicates within this specific item to avoid conflicts.
                 if (ManualItemContent::where('manual_items_uid', $request->id)->where('name', $customName)->exists()) {
                     $errorMessages[] = "A file named '{$customName}' already exists and was skipped.";
+
                     continue; // Skip this file and move to the next one
                 }
 
                 // Use a UUID for the filename to guarantee uniqueness and prevent overwrites.
-                $fileNameUnique = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
+                $fileNameUnique = Str::uuid()->toString().'.'.$file->getClientOriginalExtension();
                 $path = $file->storeAs('', $fileNameUnique, 'privateSubManualContent');
 
                 // Store file data in the database
@@ -91,7 +92,7 @@ class ManualItemContentController extends Controller
                 $permissionName = "access-manual-{$parentManual->name}.{$itemManual->name}.{$customName}";
                 $permission = Permission::firstOrCreate(['name' => $permissionName]);
 
-                if (auth()->check() && !auth()->user()->hasPermissionTo($permission)) {
+                if (auth()->check() && ! auth()->user()->hasPermissionTo($permission)) {
                     auth()->user()->givePermissionTo($permission);
                 }
 
@@ -102,9 +103,10 @@ class ManualItemContentController extends Controller
 
             // --- 5. Centralized User Feedback ---
             $flashMessage = "{$successCount} file(s) uploaded successfully.";
-            if (!empty($errorMessages)) {
+            if (! empty($errorMessages)) {
                 // If there were non-critical errors (like duplicates), attach them to the message.
-                $flashMessage .= ' Issues: ' . implode(' ', $errorMessages);
+                $flashMessage .= ' Issues: '.implode(' ', $errorMessages);
+
                 return redirect()->route('manual.items.content.index', $request->id)->with('warning', $flashMessage);
             }
 
@@ -112,7 +114,7 @@ class ManualItemContentController extends Controller
 
         } catch (\Exception $exception) {
             DB::rollBack(); // An unexpected error occurred, roll back all database changes.
-            Log::error('Error during file upload batch: ' . $exception->getMessage());
+            Log::error('Error during file upload batch: '.$exception->getMessage());
 
             // A cleanup job could be dispatched here to delete any orphaned files
             // that were stored on disk before the database transaction failed.
@@ -128,6 +130,7 @@ class ManualItemContentController extends Controller
     {
         // Use findOrFail for cleaner code and automatic 404 handling.
         $manualItem = ManualsItem::findOrFail($id);
+
         return view('manuals.items.contents.add', ['Id' => $id, 'Manual' => $manualItem]);
     }
 
@@ -136,14 +139,14 @@ class ManualItemContentController extends Controller
      */
     public function destroy($id, $ids) // Removed unused ManualItemContent injection
     {
-        if (!Auth::user()->can('destroy-manual')) {
+        if (! Auth::user()->can('destroy-manual')) {
             return back()->with('error', 'You do not have permission to delete files.');
         }
 
         // --- 6. Simplified and Safer Deletion ---
         $contentItem = ManualItemContent::find($ids);
 
-        if (!$contentItem) {
+        if (! $contentItem) {
             return redirect()->route('manual.items.content.index', $id)->with('error', 'File record not found.');
         }
 
@@ -170,14 +173,15 @@ class ManualItemContentController extends Controller
     public function showPdf($filename)
     {
         $pdfUrl = route('manual.items.content.raw', $filename);
+
         return view('pdf.viewer', ['pdfUrl' => $pdfUrl]);
     }
 
     public function getRawPdf($filename)
     {
-        $path = storage_path('app/public/uploads/content/' . $filename);
+        $path = storage_path('app/public/uploads/content/'.$filename);
 
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             abort(404);
         }
 
@@ -188,6 +192,8 @@ class ManualItemContentController extends Controller
 
     // Unused resourceful methods can be removed if you don't plan to implement them.
     public function show(ManualItemContent $manualItemContent) {}
+
     public function edit(ManualItemContent $manualItemContent) {}
+
     public function update(Request $request, ManualItemContent $manualItemContent) {}
 }

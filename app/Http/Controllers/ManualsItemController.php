@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ManualItemContent;
 use App\Models\Manuals;
 use App\Models\ManualsItem;
 use App\Models\Permission;
@@ -37,6 +36,7 @@ class ManualsItemController extends Controller
     public function create($id)
     {
         $manual = Manuals::findOrFail($id);
+
         return view('manuals.items.add', ['Id' => $id, 'Manual' => $manual]);
     }
 
@@ -68,11 +68,13 @@ class ManualsItemController extends Controller
             }
 
             DB::commit();
+
             return redirect()->route('manual.items.index', $parentManual->mid)->with('success', $message);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("Failed to create manual item: " . $e->getMessage());
+            Log::error('Failed to create manual item: '.$e->getMessage());
+
             // Return with the specific error message for user feedback
             return back()->with('error', $e->getMessage())->withInput();
         }
@@ -83,7 +85,7 @@ class ManualsItemController extends Controller
      */
     public function destroy($id, $ids)
     {
-        if (!Auth::user()->can('destroy-manual')) {
+        if (! Auth::user()->can('destroy-manual')) {
             return back()->with('error', 'You do not have permission to delete.');
         }
 
@@ -105,12 +107,14 @@ class ManualsItemController extends Controller
             }
 
             DB::commit();
+
             // 5. Corrected redirect
             return redirect()->route('manual.items.index', $id)->with('success', $message);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("Failed to delete manual item {$ids}: " . $e->getMessage());
+            Log::error("Failed to delete manual item {$ids}: ".$e->getMessage());
+
             return back()->with('error', 'An error occurred during deletion.');
         }
     }
@@ -123,7 +127,7 @@ class ManualsItemController extends Controller
         $user = auth()->user();
         $manual = Manuals::findOrFail($id);
 
-        if (!$user->hasPermissionTo("access-manual-{$manual->name}")) {
+        if (! $user->hasPermissionTo("access-manual-{$manual->name}")) {
             return response()->json(['success' => false, 'message' => 'Access denied'], 403);
         }
 
@@ -158,14 +162,15 @@ class ManualsItemController extends Controller
     public function showPdf($filename)
     {
         $pdfUrl = route('manual.items.raw', $filename);
+
         return view('pdf.viewer', ['pdfUrl' => $pdfUrl]);
     }
 
     public function getRawPdf($filename)
     {
-        $path = storage_path('app/public/uploads/sub-manual/' . $filename);
+        $path = storage_path('app/public/uploads/sub-manual/'.$filename);
 
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             abort(404);
         }
 
@@ -203,7 +208,7 @@ class ManualsItemController extends Controller
             }
 
             // 3. Use a better unique name generator
-            $fileNameUnique = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
+            $fileNameUnique = Str::uuid()->toString().'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs('', $fileNameUnique, 'privateSubManual');
 
             $manualItem = ManualsItem::create([
@@ -245,16 +250,17 @@ class ManualsItemController extends Controller
     private function assignPermission(string $permissionName): void
     {
         $permission = Permission::firstOrCreate(['name' => $permissionName]);
-        if (auth()->check() && !auth()->user()->hasPermissionTo($permission)) {
+        if (auth()->check() && ! auth()->user()->hasPermissionTo($permission)) {
             auth()->user()->givePermissionTo($permission);
         }
     }
 
     // Unused resourceful methods can be removed if not needed.
     public function show(ManualsItem $manualsItem) {}
-    public function edit($id) {}
-    public function update($id, $ids, Request $request, ManualsItem $manualsItem) {}
 
+    public function edit($id) {}
+
+    public function update($id, $ids, Request $request, ManualsItem $manualsItem) {}
 
     public function formatBytes($bytes, $precision = 2)
     {
@@ -265,5 +271,4 @@ class ManualsItemController extends Controller
 
         return number_format(pow(1024, $base - floor($base)), $precision).' '.$suffix;
     }
-
 }

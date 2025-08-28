@@ -34,3 +34,6 @@ Homestead.json
 /docker
 *.rar
 *.xml
+.idea/library.iml
+.idea/library.iml
+.idea/php.xml
