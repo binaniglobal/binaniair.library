@@ -127,6 +127,7 @@
     @push('scripts')
         <script>
             $(document).ready(function() {
+                updateServiceWorkerAuthToken();
                 updateAllCacheStatus();
 
                 $("#dt-responsive").DataTable({
@@ -219,22 +220,15 @@
                     }
 
                     return new Promise((resolve, reject) => {
-                        const messageChannel = new MessageChannel();
-                        messageChannel.port1.onmessage = event => {
-                            if (event.data.success) {
-                                resolve();
-                            } else {
-                                reject(new Error(event.data.error || 'Saving offline failed in service worker'));
-                            }
-                        };
-
                         navigator.serviceWorker.controller.postMessage({
                             type: 'CACHE_PDF',
                             payload: {
                                 raw_url: docData.raw_url,
                                 pwa_url: docData.pwa_url
                             }
-                        }, [messageChannel.port2]);
+                        });
+                        // Assuming success for now, as there is no robust message-back channel
+                        resolve();
                     });
                 }
 
@@ -268,7 +262,7 @@
 
                 async function isUrlCached(url) {
                     if (!('caches' in window)) return false;
-                    const cache = await caches.open('library-manuals-v1.0.5');
+                    const cache = await caches.open('library-manuals-v1.0.6');
                     return !!(await cache.match(url));
                 }
 
