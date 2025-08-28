@@ -52,10 +52,12 @@
                                         <div class="btn-group">
                                             @if($items->file_type === 'application/pdf')
                                                 <a class="btn btn-link p-0 text-start pdf-modal-trigger"
-                                                   href="{{ route('manual.items.content.view', ['filename' => $items->link]) }}">
+                                                   href="{{ route('manual.items.content.view', ['filename' => $items->link]) }}"
+                                                   data-doc-name="{{ $items->name }}">
                                                     <i class="mdi mdi-file-pdf-box text-danger me-1"></i>
                                                     {{ $items->name }}
                                                 </a>
+                                                <span class="cache-status text-success ms-2" data-raw-url="{{ route('manual.items.content.raw', ['filename' => $items->link]) }}"></span>
                                             @else
                                                 <span class="text-muted">
                                                     <i class="mdi mdi-file me-1"></i>
@@ -68,7 +70,7 @@
                                     <td>{{ $size->formatBytes($items->file_size) }}</td>
                                     @can('destroy-manual')
                                         <td>
-                                            <div class="dropdown">
+                                            <div class="dropdown" data-cache-container data-raw-url="{{ route('manual.items.content.raw', ['filename' => $items->link]) }}">
                                                 <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
                                                         data-bs-toggle="dropdown">
                                                     <i class="mdi mdi-dots-vertical"></i>
@@ -78,9 +80,15 @@
                                                         <a class="dropdown-item cache-doc-btn"
                                                            href="#"
                                                            data-doc-name="{{ $items->name }}"
-                                                           data-raw-url="{{ route('manual.items.content.raw', ['filename' => $items->link]) }}"
                                                            data-pwa-url="{{ getPwaSubManualContentUrl($items->link) }}">
-                                                            <i class="mdi mdi-download me-1"></i> Cache Offline
+                                                            <i class="mdi mdi-download me-1"></i> Save Offline
+                                                        </a>
+                                                        <a class="dropdown-item update-cache-btn"
+                                                           href="#"
+                                                           style="display: none;"
+                                                           data-doc-name="{{ $items->name }}"
+                                                           data-pwa-url="{{ getPwaSubManualContentUrl($items->link) }}">
+                                                            <i class="mdi mdi-refresh me-1"></i> Update Offline
                                                         </a>
                                                     @endif
                                                     <a class="dropdown-item"
@@ -119,6 +127,8 @@
     @push('scripts')
         <script>
             $(document).ready(function() {
+                updateAllCacheStatus();
+
                 $("#dt-responsive").DataTable({
                     "responsive": true, "lengthChange": false, "autoWidth": false, ordering: false,
                     buttons: [
@@ -143,42 +153,43 @@
                 $('.pdf-modal-trigger').on('click', function(e) {
                     e.preventDefault();
                     const pdfUrl = $(this).attr('href');
+                    const docName = $(this).data('doc-name');
                     $('#pdf-iframe').attr('src', pdfUrl);
+                    $('#pdfViewerModalLabel').text(docName);
                     $('#pdfViewerModal').modal('show');
                 });
 
                 // Clear iframe src when modal is hidden to stop loading
                 $('#pdfViewerModal').on('hidden.bs.modal', function () {
                     $('#pdf-iframe').attr('src', '');
+                    $('#pdfViewerModalLabel').text('PDF Viewer'); // Reset title
                 });
 
-                // Individual document caching functionality
-                $(document).on('click', '.cache-doc-btn', function(e) {
+                // Caching functionality
+                $(document).on('click', '.cache-doc-btn, .update-cache-btn', function(e) {
                     e.preventDefault();
 
                     const $btn = $(this);
+                    const isUpdate = $btn.hasClass('update-cache-btn');
                     const docName = $btn.data('doc-name');
-                    const rawUrl = $btn.data('raw-url');
+                    const rawUrl = $btn.closest('[data-cache-container]').data('raw-url');
                     const pwaUrl = $btn.data('pwa-url');
 
                     const originalHtml = $btn.html();
-                    $btn.html('<i class="mdi mdi-loading mdi-spin"></i> Caching...');
+                    $btn.html('<i class="mdi mdi-loading mdi-spin"></i> ' + (isUpdate ? 'Updating...' : 'Saving...'));
                     $btn.prop('disabled', true);
 
                     cacheIndividualDocument({ name: docName, raw_url: rawUrl, pwa_url: pwaUrl })
                         .then(() => {
-                            showNotification('success', `Document "${docName}" cached successfully!`);
-                            $btn.html('<i class="mdi mdi-check"></i> Cached');
-                            $btn.removeClass('btn-outline-primary').addClass('btn-success');
-                            $btn.prop('disabled', false);
-                            setTimeout(() => {
-                                $btn.html(originalHtml);
-                                $btn.removeClass('btn-success').addClass('btn-outline-primary');
-                            }, 3000);
+                            const successMessage = isUpdate ? `Document "${docName}" updated successfully!` : `Document "${docName}" saved offline successfully!`;
+                            showNotification('success', successMessage);
+                            updateCacheStatusForUrl(rawUrl);
                         })
                         .catch(error => {
-                            console.error('Failed to cache document:', error);
-                            showNotification('error', `Failed to cache "${docName}". Please try again.`);
+                            console.error('Failed to save document offline:', error);
+                            showNotification('error', `Failed to save "${docName}" offline. Please try again.`);
+                        })
+                        .finally(() => {
                             $btn.html(originalHtml);
                             $btn.prop('disabled', false);
                         });
@@ -195,7 +206,7 @@
                             if (event.data.success) {
                                 resolve();
                             } else {
-                                reject(new Error(event.data.error || 'Caching failed in service worker'));
+                                reject(new Error(event.data.error || 'Saving offline failed in service worker'));
                             }
                         };
 
@@ -207,6 +218,40 @@
                             }
                         }, [messageChannel.port2]);
                     });
+                }
+
+                async function updateAllCacheStatus() {
+                    const cacheContainers = document.querySelectorAll('[data-cache-container]');
+                    for (const container of cacheContainers) {
+                        const rawUrl = container.getAttribute('data-raw-url');
+                        updateCacheStatusForUrl(rawUrl);
+                    }
+                }
+
+                async function updateCacheStatusForUrl(rawUrl) {
+                    const isCached = await isUrlCached(rawUrl);
+                    const container = document.querySelector(`[data-cache-container][data-raw-url="${rawUrl}"]`);
+                    const statusEl = document.querySelector(`.cache-status[data-raw-url="${rawUrl}"]`);
+
+                    if (container) {
+                        const cacheBtn = container.querySelector('.cache-doc-btn');
+                        const updateBtn = container.querySelector('.update-cache-btn');
+                        if (isCached) {
+                            cacheBtn.style.display = 'none';
+                            updateBtn.style.display = 'block';
+                            if(statusEl) statusEl.textContent = 'Saved Offline';
+                        } else {
+                            cacheBtn.style.display = 'block';
+                            updateBtn.style.display = 'none';
+                            if(statusEl) statusEl.textContent = '';
+                        }
+                    }
+                }
+
+                async function isUrlCached(url) {
+                    if (!('caches' in window)) return false;
+                    const cache = await caches.open('library-manuals-v1.0.1');
+                    return !!(await cache.match(url));
                 }
 
                 function showNotification(type, message) {
