@@ -102,7 +102,7 @@ self.addEventListener('fetch', event => {
             fetch(request)
                 .then(networkResponse => {
                     if (networkResponse.ok) {
-                        // Don't block the response on caching
+                        // Use waitUntil to not block the response while caching
                         event.waitUntil(
                             caches.open(DYNAMIC_CACHE_NAME).then(cache => {
                                 cache.put(request, networkResponse.clone());
@@ -111,7 +111,7 @@ self.addEventListener('fetch', event => {
                     }
                     return networkResponse;
                 })
-                .catch(async () => {
+                .catch(async () => { // Use an async function for proper awaiting
                     const cachedResponse = await caches.match(request);
                     return cachedResponse || await caches.match(OFFLINE_URL);
                 })
