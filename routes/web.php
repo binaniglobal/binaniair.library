@@ -36,6 +36,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/manual/sub-manuals/file/{filename}', [HomeController::class, 'downloadSubManuals'])->name('download.submanuals');
     Route::get('/manual/sub-manuals/content/file/{filename}', [HomeController::class, 'downloadSubManualsContent'])->name('download.contents');
+    Route::get('/manual/sub-manuals/content/file/{filename}/view', [ManualItemContentController::class, 'showPdf'])->name('manual.items.content.view');
+    Route::get('/manual/sub-manuals/content/file/{filename}/raw', [ManualItemContentController::class, 'getRawPdf'])->name('manual.items.content.raw');
 
     // PWA API endpoints
     Route::get('/api/manuals', [ManualsController::class, 'apiIndex'])->name('api.manuals');
@@ -102,6 +104,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/manual/sub-manuals/{id}/add', [ManualsItemController::class, 'create'])->middleware(['permission:create-manual'])->name('manual.items.show');
     Route::post('/manual/sub-manuals/create', [ManualsItemController::class, 'store'])->middleware(['permission:create-manual'])->name('manual.items.store');
     Route::get('/manual/sub-manuals/{id}/destroy/{ids}', [ManualsItemController::class, 'destroy'])->middleware(['permission:destroy-manual'])->name('manual.items.destroy');
+    Route::get('/manual/sub-manuals/file/{filename}/view', [ManualsItemController::class, 'showPdf'])->name('manual.items.view');
+    Route::get('/manual/sub-manuals/file/{filename}/raw', [ManualsItemController::class, 'getRawPdf'])->name('manual.items.raw');
 
     // Start Manual Items Contents
     Route::get('/manual/sub-manuals/content/{id}', [ManualItemContentController::class, 'index'])->middleware(['permission:view-manual'])->name('manual.items.content.index');
