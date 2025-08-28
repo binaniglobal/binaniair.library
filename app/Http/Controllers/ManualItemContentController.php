@@ -167,6 +167,25 @@ class ManualItemContentController extends Controller
         return redirect()->route('manual.items.content.index', $id)->with('success', "'{$deletedName}' has been deleted successfully.");
     }
 
+    public function showPdf($filename)
+    {
+        $pdfUrl = route('manual.items.content.raw', $filename);
+        return view('pdf.viewer', ['pdfUrl' => $pdfUrl]);
+    }
+
+    public function getRawPdf($filename)
+    {
+        $path = storage_path('app/public/uploads/content/' . $filename);
+
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
+        return response()->file($path, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+
     // Unused resourceful methods can be removed if you don't plan to implement them.
     public function show(ManualItemContent $manualItemContent) {}
     public function edit(ManualItemContent $manualItemContent) {}
