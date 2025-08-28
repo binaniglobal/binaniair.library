@@ -1,5 +1,9 @@
 'use strict';
 
+// Note: The PWA installation prompt (beforeinstallprompt event) is handled by client-side
+// JavaScript in the main application layout, not in the service worker. This file's
+// responsibility is to manage caching, offline functionality, and background tasks.
+
 // Cache names
 const CACHE_VERSION = 'v1.0.6'; // Incremented version
 const STATIC_CACHE_NAME = `library-static-${CACHE_VERSION}`;
@@ -88,7 +92,7 @@ self.addEventListener('activate', event => {
 
 // Fetch event - handle requests
 self.addEventListener('fetch', event => {
-    const { request } = event;
+    const {request} = event;
     const url = new URL(request.url);
 
     if (request.method !== 'GET') return;
@@ -96,10 +100,10 @@ self.addEventListener('fetch', event => {
     // PDFs: Stale-while-revalidate
     if (url.pathname.includes('/raw')) {
         event.respondWith(staleWhileRevalidate(request, MANUALS_CACHE_NAME));
-    // Static assets: Cache first, then network
+        // Static assets: Cache first, then network
     } else if (STATIC_ASSETS.some(asset => url.pathname.endsWith(asset.split('?')[0]))) {
         event.respondWith(cacheFirst(request, STATIC_CACHE_NAME));
-    // Other requests: Network first, then cache
+        // Other requests: Network first, then cache
     } else {
         event.respondWith(networkFirst(request, DYNAMIC_CACHE_NAME));
     }
@@ -137,11 +141,14 @@ async function staleWhileRevalidate(request, cacheName) {
 }
 
 self.addEventListener('message', event => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
     if (event.data && event.data.type === 'SET_AUTH_TOKEN') {
         authToken = event.data.token;
         console.log('[ServiceWorker] Auth token received.');
     } else if (event.data && event.data.type === 'CACHE_PDF') {
-        const { raw_url, pwa_url } = event.data.payload;
+        const {raw_url, pwa_url} = event.data.payload;
         event.waitUntil(cachePdf(raw_url, pwa_url));
     }
 });
@@ -152,13 +159,13 @@ async function cachePdf(rawUrl, pwaUrl) {
         return;
     }
 
-    const headers = { 'X-Requested-With': 'XMLHttpRequest' };
+    const headers = {'X-Requested-With': 'XMLHttpRequest'};
     if (authToken) {
         headers['Authorization'] = `Bearer ${authToken}`;
     }
 
     try {
-        const response = await fetch(pwaUrl, { headers, credentials: 'include' });
+        const response = await fetch(pwaUrl, {headers, credentials: 'include'});
         if (response.ok) {
             const cache = await caches.open(MANUALS_CACHE_NAME);
             await cache.put(rawUrl, response);
