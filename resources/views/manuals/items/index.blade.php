@@ -172,7 +172,7 @@
                 });
 
                 // Caching functionality
-                $(document).on('click', '.cache-doc-btn, .update-cache-btn', function(e) {
+                $(document).on('click', '.cache-doc-btn, .update-cache-btn', async function(e) {
                     e.preventDefault();
 
                     const $btn = $(this);
@@ -185,21 +185,39 @@
                     $btn.html('<i class="mdi mdi-loading mdi-spin"></i> ' + (isUpdate ? 'Updating...' : 'Saving...'));
                     $btn.prop('disabled', true);
 
-                    cacheIndividualDocument({ name: docName, raw_url: rawUrl, pwa_url: pwaUrl })
-                        .then(() => {
-                            const successMessage = isUpdate ? `Document "${docName}" updated successfully!` : `Document "${docName}" saved offline successfully!`;
-                            showNotification('success', successMessage);
-                            updateCacheStatusForUrl(rawUrl);
-                        })
-                        .catch(error => {
-                            console.error('Failed to save document offline:', error);
-                            showNotification('error', `Failed to save "${docName}" offline. Please try again.`);
-                        })
-                        .finally(() => {
-                            $btn.html(originalHtml);
-                            $btn.prop('disabled', false);
-                        });
+                    try {
+                        await updateServiceWorkerAuthToken();
+                        await cacheIndividualDocument({ name: docName, raw_url: rawUrl, pwa_url: pwaUrl });
+
+                        const successMessage = isUpdate ? `Document "${docName}" updated successfully!` : `Document "${docName}" saved offline successfully!`;
+                        showNotification('success', successMessage);
+                        updateCacheStatusForUrl(rawUrl);
+                    } catch (error) {
+                        console.error('Failed to save document offline:', error);
+                        showNotification('error', `Failed to save "${docName}" offline. Please try again.`);
+                    } finally {
+                        $btn.html(originalHtml);
+                        $btn.prop('disabled', false);
+                    }
                 });
+
+                async function updateServiceWorkerAuthToken() {
+                    try {
+                        const response = await fetch('/pwa/auth-token');
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch auth token');
+                        }
+                        const data = await response.json();
+                        if (navigator.serviceWorker.controller) {
+                            navigator.serviceWorker.controller.postMessage({
+                                type: 'SET_AUTH_TOKEN',
+                                token: data.token
+                            });
+                        }
+                    } catch (error) {
+                        console.error('[PWA] Failed to update auth token, caching may fail', error);
+                    }
+                }
 
                 async function cacheIndividualDocument(docData) {
                     if (!('serviceWorker' in navigator && navigator.serviceWorker.controller)) {
@@ -256,7 +274,7 @@
 
                 async function isUrlCached(url) {
                     if (!('caches' in window)) return false;
-                    const cache = await caches.open('library-manuals-v1.0.1');
+                    const cache = await caches.open('library-manuals-v1.0.5');
                     return !!(await cache.match(url));
                 }
 
