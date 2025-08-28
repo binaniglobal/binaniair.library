@@ -190,7 +190,7 @@ class ManualsItemController extends Controller
             'file_type' => 'Folder',
         ]);
 
-        $this.assignPermission("access-manual-{$parentManual->name}.{$manualItem->name}");
+        $this->assignPermission("access-manual-{$parentManual->name}.{$manualItem->name}");
     }
 
     private function createFiles(array $data, Manuals $parentManual): void
