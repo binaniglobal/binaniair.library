@@ -1,7 +1,7 @@
 'use strict';
 
 // Cache names
-const CACHE_VERSION = 'v1.0.4'; // Incremented version
+const CACHE_VERSION = 'v1.0.5'; // Incremented version
 const STATIC_CACHE_NAME = `library-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `library-dynamic-${CACHE_VERSION}`;
 const MANUALS_CACHE_NAME = `library-manuals-${CACHE_VERSION}`;
@@ -42,6 +42,8 @@ const STATIC_ASSETS = [
     // Manifest
     '/manifest.json'
 ];
+
+let authToken = null;
 
 // Install event - cache static assets
 self.addEventListener('install', event => {
@@ -86,13 +88,10 @@ self.addEventListener('fetch', event => {
 
     if (request.method !== 'GET') return;
 
-    // PDFs: Stale-while-revalidate
     if (url.pathname.includes('/raw')) {
         event.respondWith(staleWhileRevalidate(request, MANUALS_CACHE_NAME));
-    // Static assets: Cache first, then network
     } else if (STATIC_ASSETS.some(asset => url.pathname.endsWith(asset))) {
         event.respondWith(cacheFirst(request, STATIC_CACHE_NAME));
-    // Other requests: Network first, then cache
     } else {
         event.respondWith(networkFirst(request, DYNAMIC_CACHE_NAME));
     }
@@ -108,7 +107,6 @@ async function networkFirst(request, cacheName) {
         const networkResponse = await fetch(request);
         if (networkResponse.ok) {
             const cache = await caches.open(cacheName);
-            // Use waitUntil to not block the response while caching
             self.waitUntil(cache.put(request, networkResponse.clone()));
         }
         return networkResponse;
@@ -121,38 +119,38 @@ async function networkFirst(request, cacheName) {
 async function staleWhileRevalidate(request, cacheName) {
     const cache = await caches.open(cacheName);
     const cachedResponse = await cache.match(request);
-
     const fetchPromise = fetch(request).then(networkResponse => {
         if (networkResponse.ok) {
-            // By cloning the response, we can use it for the cache and return the original
             cache.put(request, networkResponse.clone());
         }
         return networkResponse;
     });
-
     return cachedResponse || fetchPromise;
 }
 
-// Listen for messages from the client
 self.addEventListener('message', event => {
-    if (event.data && event.data.type === 'CACHE_PDF') {
+    if (event.data && event.data.type === 'SET_AUTH_TOKEN') {
+        authToken = event.data.token;
+        console.log('[ServiceWorker] Auth token received.');
+    } else if (event.data && event.data.type === 'CACHE_PDF') {
         const { raw_url, pwa_url } = event.data.payload;
         event.waitUntil(cachePdf(raw_url, pwa_url));
     }
 });
 
-// Function to fetch from PWA URL and cache against Raw URL
 async function cachePdf(rawUrl, pwaUrl) {
     if (!rawUrl || !pwaUrl) {
         console.error('[ServiceWorker] Both raw_url and pwa_url are required for caching.');
         return;
     }
 
-    console.log(`[ServiceWorker] Caching PDF. Key: ${rawUrl}, Source: ${pwaUrl}`);
+    const headers = { 'X-Requested-With': 'XMLHttpRequest' };
+    if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+    }
 
     try {
-        const response = await fetch(pwaUrl, { credentials: 'include' });
-
+        const response = await fetch(pwaUrl, { headers, credentials: 'include' });
         if (response.ok) {
             const cache = await caches.open(MANUALS_CACHE_NAME);
             await cache.put(rawUrl, response.clone());
