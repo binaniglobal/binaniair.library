@@ -101,6 +101,9 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
+                        <button id="clear-old-caches-btn" class="btn btn-info">
+                            <i class="mdi mdi-broom"></i> Clear Old Static Caches
+                        </button>
                         <button id="clear-cache-btn" class="btn btn-warning">
                             <i class="mdi mdi-delete-sweep"></i> Clear All Cached Files
                         </button>
@@ -122,54 +125,34 @@
         loadCacheStats();
         document.getElementById('refresh-cache-stats').addEventListener('click', loadCacheStats);
         document.getElementById('clear-cache-btn').addEventListener('click', clearCache);
+        document.getElementById('clear-old-caches-btn').addEventListener('click', clearOldCaches);
     });
 
     function initializePWA() {
-        let deferredPrompt;
         const installButton = document.getElementById('install-pwa-btn');
         const pwaStatus = document.getElementById('pwa-status');
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the mini-infobar from appearing on mobile
-            e.preventDefault();
-            // Stash the event so it can be triggered later.
-            deferredPrompt = e;
-            // Update UI to notify the user they can install the PWA
-            installButton.style.display = 'block';
-            pwaStatus.textContent = 'Available';
-            pwaStatus.className = 'badge bg-info';
-        });
+        // The 'beforeinstallprompt' event is handled by the global script in app.blade.php
+        // to avoid conflicts. This function will now only manage the UI status display.
 
-        installButton.addEventListener('click', async () => {
-            // Hide the app provided install promotion
-            installButton.style.display = 'none';
-            // Show the install prompt
-            deferredPrompt.prompt();
-            // Wait for the user to respond to the prompt
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response to the install prompt: ${outcome}`);
-            // We've used the prompt, and can't use it again, throw it away
-            deferredPrompt = null;
-        });
-
+        // Listen for the appinstalled event to update status after installation.
         window.addEventListener('appinstalled', () => {
-            // Hide the install button
             installButton.style.display = 'none';
-            // Clear the deferredPrompt so it can be garbage collected
-            deferredPrompt = null;
-            // Update the UI to show the app is installed
             pwaStatus.textContent = 'Installed';
             pwaStatus.className = 'badge bg-success';
         });
 
-        // Check if the app is already installed
+        // Check the initial installation state.
         if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
             pwaStatus.textContent = 'Installed';
             pwaStatus.className = 'badge bg-success';
             installButton.style.display = 'none';
         } else {
+            // If not installed, the global script will show a floating install button when available.
+            // This page will simply reflect the "Not Installed" status.
             pwaStatus.textContent = 'Not Installed';
             pwaStatus.className = 'badge bg-secondary';
+            installButton.style.display = 'none'; // Hide the in-page button to prevent redundancy.
         }
     }
 
@@ -204,7 +187,7 @@
         }
 
         try {
-            const cache = await caches.open('library-manuals-v1.0.5'); // Ensure correct cache name
+            const cache = await caches.open('library-manuals-v1.0.6');
             const requests = await cache.keys();
 
             let itemsCount = 0;
@@ -232,6 +215,35 @@
         }
     }
 
+    async function clearOldCaches() {
+        if (!confirm('Are you sure you want to clear old static caches? This is useful after an update.')) return;
+
+        const btn = document.getElementById('clear-old-caches-btn');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Clearing...';
+        btn.disabled = true;
+
+        try {
+            const currentCaches = ['library-static-v1.0.6', 'library-dynamic-v1.0.6', 'library-manuals-v1.0.6'];
+            const cacheNames = await caches.keys();
+            const oldCaches = cacheNames.filter(name => !currentCaches.includes(name));
+
+            if (oldCaches.length === 0) {
+                showNotification('info', 'No old caches to clear.');
+                return;
+            }
+
+            await Promise.all(oldCaches.map(cache => caches.delete(cache)));
+            showNotification('success', 'Old static caches cleared successfully!');
+        } catch (error) {
+            console.error('Error clearing old caches:', error);
+            showNotification('error', 'Failed to clear old caches.');
+        } finally {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }
+    }
+
     async function clearCache() {
         if (confirm('Are you sure you want to clear all cached PDF files?')) {
             const btn = document.getElementById('clear-cache-btn');
@@ -240,8 +252,8 @@
             btn.disabled = true;
 
             try {
-                await caches.delete('library-manuals-v1.0.5'); // Ensure correct cache name
-                showNotification('success', 'Cached files cleared successfully!');
+                await caches.delete('library-manuals-v1.0.6');
+                showNotification('success', 'Cached PDF files cleared successfully!');
                 loadCacheStats(); // Refresh stats after clearing
             } catch (error) {
                 console.error('Error clearing cache:', error);
