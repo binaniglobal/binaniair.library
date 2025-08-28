@@ -155,6 +155,25 @@ class ManualsItemController extends Controller
         ]);
     }
 
+    public function showPdf($filename)
+    {
+        $pdfUrl = route('manual.items.raw', $filename);
+        return view('pdf.viewer', ['pdfUrl' => $pdfUrl]);
+    }
+
+    public function getRawPdf($filename)
+    {
+        $path = storage_path('app/public/uploads/sub-manual/' . $filename);
+
+        if (!file_exists($path)) {
+            abort(404);
+        }
+
+        return response()->file($path, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+
     // --- Private Helper Methods for Cleaner Logic ---
 
     private function createFolder(array $data, Manuals $parentManual): void
@@ -171,7 +190,7 @@ class ManualsItemController extends Controller
             'file_type' => 'Folder',
         ]);
 
-        $this->assignPermission("access-manual-{$parentManual->name}.{$manualItem->name}");
+        $this.assignPermission("access-manual-{$parentManual->name}.{$manualItem->name}");
     }
 
     private function createFiles(array $data, Manuals $parentManual): void
