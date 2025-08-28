@@ -1,7 +1,7 @@
 'use strict';
 
 // Cache names
-const CACHE_VERSION = 'v1.0.3'; // Incremented version
+const CACHE_VERSION = 'v1.0.4'; // Incremented version
 const STATIC_CACHE_NAME = `library-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `library-dynamic-${CACHE_VERSION}`;
 const MANUALS_CACHE_NAME = `library-manuals-${CACHE_VERSION}`;
@@ -88,44 +88,43 @@ self.addEventListener('fetch', event => {
 
     // PDFs: Stale-while-revalidate
     if (url.pathname.includes('/raw')) {
-        event.respondWith(handlePdfRequest(request));
+        event.respondWith(staleWhileRevalidate(request, MANUALS_CACHE_NAME));
     // Static assets: Cache first, then network
     } else if (STATIC_ASSETS.some(asset => url.pathname.endsWith(asset))) {
-        event.respondWith(
-            caches.match(request).then(cachedResponse => {
-                return cachedResponse || fetch(request);
-            })
-        );
-    // Other requests: Network first, then cache, then offline page
+        event.respondWith(cacheFirst(request, STATIC_CACHE_NAME));
+    // Other requests: Network first, then cache
     } else {
-        event.respondWith(
-            fetch(request)
-                .then(networkResponse => {
-                    if (networkResponse.ok) {
-                        // Use waitUntil to not block the response while caching
-                        event.waitUntil(
-                            caches.open(DYNAMIC_CACHE_NAME).then(cache => {
-                                cache.put(request, networkResponse.clone());
-                            })
-                        );
-                    }
-                    return networkResponse;
-                })
-                .catch(async () => { // Use an async function for proper awaiting
-                    const cachedResponse = await caches.match(request);
-                    return cachedResponse || await caches.match(OFFLINE_URL);
-                })
-        );
+        event.respondWith(networkFirst(request, DYNAMIC_CACHE_NAME));
     }
 });
 
-// Stale-while-revalidate for PDFs
-async function handlePdfRequest(request) {
-    const cache = await caches.open(MANUALS_CACHE_NAME);
+async function cacheFirst(request, cacheName) {
+    const cachedResponse = await caches.match(request);
+    return cachedResponse || fetch(request);
+}
+
+async function networkFirst(request, cacheName) {
+    try {
+        const networkResponse = await fetch(request);
+        if (networkResponse.ok) {
+            const cache = await caches.open(cacheName);
+            // Use waitUntil to not block the response while caching
+            self.waitUntil(cache.put(request, networkResponse.clone()));
+        }
+        return networkResponse;
+    } catch (error) {
+        const cachedResponse = await caches.match(request);
+        return cachedResponse || await caches.match(OFFLINE_URL);
+    }
+}
+
+async function staleWhileRevalidate(request, cacheName) {
+    const cache = await caches.open(cacheName);
     const cachedResponse = await cache.match(request);
 
     const fetchPromise = fetch(request).then(networkResponse => {
         if (networkResponse.ok) {
+            // By cloning the response, we can use it for the cache and return the original
             cache.put(request, networkResponse.clone());
         }
         return networkResponse;
