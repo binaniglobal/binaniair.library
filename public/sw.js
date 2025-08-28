@@ -1,7 +1,7 @@
 'use strict';
 
 // Cache names
-const CACHE_VERSION = 'v1.0.2';
+const CACHE_VERSION = 'v1.0.3'; // Incremented version
 const STATIC_CACHE_NAME = `library-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `library-dynamic-${CACHE_VERSION}`;
 const MANUALS_CACHE_NAME = `library-manuals-${CACHE_VERSION}`;
@@ -89,22 +89,32 @@ self.addEventListener('fetch', event => {
     // PDFs: Stale-while-revalidate
     if (url.pathname.includes('/raw')) {
         event.respondWith(handlePdfRequest(request));
-    // Static assets: Cache first
+    // Static assets: Cache first, then network
     } else if (STATIC_ASSETS.some(asset => url.pathname.endsWith(asset))) {
-        event.respondWith(caches.match(request));
-    // Other requests: Network first
+        event.respondWith(
+            caches.match(request).then(cachedResponse => {
+                return cachedResponse || fetch(request);
+            })
+        );
+    // Other requests: Network first, then cache, then offline page
     } else {
         event.respondWith(
             fetch(request)
-                .then(response => {
-                    // Cache successful responses
-                    if (response.ok) {
-                        const cache = caches.open(DYNAMIC_CACHE_NAME);
-                        cache.put(request, response.clone());
+                .then(networkResponse => {
+                    if (networkResponse.ok) {
+                        // Don't block the response on caching
+                        event.waitUntil(
+                            caches.open(DYNAMIC_CACHE_NAME).then(cache => {
+                                cache.put(request, networkResponse.clone());
+                            })
+                        );
                     }
-                    return response;
+                    return networkResponse;
                 })
-                .catch(() => caches.match(request) || caches.match(OFFLINE_URL))
+                .catch(async () => {
+                    const cachedResponse = await caches.match(request);
+                    return cachedResponse || await caches.match(OFFLINE_URL);
+                })
         );
     }
 });
