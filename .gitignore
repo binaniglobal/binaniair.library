@@ -37,3 +37,4 @@ Homestead.json
 .idea/library.iml
 .idea/library.iml
 .idea/php.xml
+*.iml
