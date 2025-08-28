@@ -1,7 +1,7 @@
 'use strict';
 
 // Cache names
-const CACHE_VERSION = 'v1.0.5'; // Incremented version
+const CACHE_VERSION = 'v1.0.6'; // Incremented version
 const STATIC_CACHE_NAME = `library-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `library-dynamic-${CACHE_VERSION}`;
 const MANUALS_CACHE_NAME = `library-manuals-${CACHE_VERSION}`;
@@ -34,6 +34,11 @@ const STATIC_ASSETS = [
     '/storage/assets/js/main.js',
     '/js/pdf.min.js',
     '/js/pdf.worker.min.js',
+    // Fonts & JSON
+    '/storage/assets/vendor/fonts/materialdesignicons/materialdesignicons-webfont.woff2?v=7.4.47',
+    '/storage/assets/vendor/fonts/materialdesignicons/materialdesignicons-webfont.woff?v=7.4.47',
+    '/storage/assets/vendor/fonts/materialdesignicons/materialdesignicons-webfont.ttf?v=7.4.47',
+    '/storage/assets/json/locales/en.json',
     // Images & Icons
     '/logo.png',
     '/logo-144x144.png',
@@ -88,10 +93,13 @@ self.addEventListener('fetch', event => {
 
     if (request.method !== 'GET') return;
 
+    // PDFs: Stale-while-revalidate
     if (url.pathname.includes('/raw')) {
         event.respondWith(staleWhileRevalidate(request, MANUALS_CACHE_NAME));
-    } else if (STATIC_ASSETS.some(asset => url.pathname.endsWith(asset))) {
+    // Static assets: Cache first, then network
+    } else if (STATIC_ASSETS.some(asset => url.pathname.endsWith(asset.split('?')[0]))) {
         event.respondWith(cacheFirst(request, STATIC_CACHE_NAME));
+    // Other requests: Network first, then cache
     } else {
         event.respondWith(networkFirst(request, DYNAMIC_CACHE_NAME));
     }
@@ -153,7 +161,7 @@ async function cachePdf(rawUrl, pwaUrl) {
         const response = await fetch(pwaUrl, { headers, credentials: 'include' });
         if (response.ok) {
             const cache = await caches.open(MANUALS_CACHE_NAME);
-            await cache.put(rawUrl, response.clone());
+            await cache.put(rawUrl, response);
             console.log(`[ServiceWorker] Successfully cached PDF: ${rawUrl}`);
         } else {
             console.error(`[ServiceWorker] Failed to fetch PDF from ${pwaUrl}. Status: ${response.status}`);
