@@ -1,7 +1,7 @@
-"use strict";
+'use strict';
 
 // Cache names
-const CACHE_VERSION = 'v1.0.1'; // Incremented version
+const CACHE_VERSION = 'v1.0.2';
 const STATIC_CACHE_NAME = `library-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `library-dynamic-${CACHE_VERSION}`;
 const MANUALS_CACHE_NAME = `library-manuals-${CACHE_VERSION}`;
@@ -10,8 +10,37 @@ const OFFLINE_URL = '/offline.html';
 // Static assets to cache immediately
 const STATIC_ASSETS = [
     OFFLINE_URL,
-    '/js/pdf.min.js', // Assuming pdf.js is stored locally
-    '/js/pdf.worker.min.js'
+    '/',
+    '/home',
+    '/manuals',
+    '/pwa-status',
+    // CSS
+    '/storage/assets/vendor/css/rtl/core.css',
+    '/storage/assets/vendor/css/rtl/theme-default.css',
+    '/storage/assets/vendor/css/pages/front-page.css',
+    '/storage/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css',
+    '/storage/assets/vendor/libs/typeahead-js/typeahead.css',
+    '/storage/assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css',
+    '/storage/assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css',
+    '/storage/assets/vendor/libs/flatpickr/flatpickr.css',
+    // JS
+    '/storage/assets/vendor/libs/jquery/jquery.js',
+    '/storage/assets/vendor/libs/popper/popper.js',
+    '/storage/assets/vendor/js/bootstrap.js',
+    '/storage/assets/vendor/js/helpers.js',
+    '/storage/assets/vendor/js/template-customizer.js',
+    '/storage/assets/vendor/js/menu.js',
+    '/storage/assets/js/config.js',
+    '/storage/assets/js/main.js',
+    '/js/pdf.min.js',
+    '/js/pdf.worker.min.js',
+    // Images & Icons
+    '/logo.png',
+    '/logo-144x144.png',
+    '/logo-192x192.png',
+    '/favicon.ico',
+    // Manifest
+    '/manifest.json'
 ];
 
 // Install event - cache static assets
@@ -55,20 +84,27 @@ self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // Only handle GET requests
-    if (request.method !== 'GET') {
-        return;
-    }
+    if (request.method !== 'GET') return;
 
-    // For PDF files, use a stale-while-revalidate strategy
-    if (url.pathname.endsWith('.pdf') || url.pathname.includes('/raw')) {
+    // PDFs: Stale-while-revalidate
+    if (url.pathname.includes('/raw')) {
         event.respondWith(handlePdfRequest(request));
+    // Static assets: Cache first
     } else if (STATIC_ASSETS.some(asset => url.pathname.endsWith(asset))) {
         event.respondWith(caches.match(request));
+    // Other requests: Network first
     } else {
-        // For other requests, use a network-first strategy
         event.respondWith(
-            fetch(request).catch(() => caches.match(request) || caches.match(OFFLINE_URL))
+            fetch(request)
+                .then(response => {
+                    // Cache successful responses
+                    if (response.ok) {
+                        const cache = caches.open(DYNAMIC_CACHE_NAME);
+                        cache.put(request, response.clone());
+                    }
+                    return response;
+                })
+                .catch(() => caches.match(request) || caches.match(OFFLINE_URL))
         );
     }
 });
