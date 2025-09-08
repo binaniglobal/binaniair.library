@@ -1,12 +1,4 @@
-{{--
-    REFACTORED:
-    - Standardized asset paths using the asset() helper.
-    - Simplified and secured the logic for "active" menu items.
-    - Refactored user info display to be safer and more efficient.
-    - Removed duplicate code for the brand logo and user avatar.
-    - Kept PWA script block intact while cleaning surrounding code.
---}}
-    <!doctype html>
+<!doctype html>
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
     class="light-style layout-navbar-fixed layout-compact"
@@ -25,16 +17,6 @@
     <meta name="description" content="BinaniAir Library"/>
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#6777ef">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="BinaniAir Library">
-
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="{{ asset('manifest.json') }}">
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ getGlobalImage('Favicon') }}"/>
@@ -88,7 +70,6 @@
         <nav class="layout-navbar navbar navbar-expand-xl align-items-center bg-navbar-theme" id="layout-navbar">
             <div class="container-xxl">
                 <div class="navbar-brand app-brand d-none d-xl-flex py-0 me-4">
-                    {{-- REFACTORED: Simplified the brand link logic to avoid repetition. --}}
                     <a href="{{ $user?->can('view-home') ? route('home') : route('manual.index') }}" class="app-brand-link gap-2">
                         <span class="app-brand-logo demo">
                             <img width="50" height="50" src="{{ getGlobalImage('Normal') }}" alt="Brand Logo">
@@ -137,7 +118,6 @@
                                                     <img src="{{ asset('storage/assets/img/avatars/1.png') }}" alt="User Avatar" class="w-px-40 h-auto rounded-circle"/>
                                                 </div>
                                             </div>
-                                            {{-- REFACTORED: Cleaned up and secured the user info display. --}}
                                             <div class="flex-grow-1">
                                                 <span class="fw-medium d-block">
                                                     {{ $user->name ?? 'Guest User' }}
@@ -183,7 +163,6 @@
                 <aside id="layout-menu" class="layout-menu-horizontal menu-horizontal menu bg-menu-theme flex-grow-0">
                     <div class="container-xxl d-flex h-100">
                         <ul class="menu-inner">
-                            {{-- REFACTORED: Replaced `{{ __('active') }}` with the standard, safer way to set an active class. --}}
                             @can('view-home')
                                 <li class="menu-item {{ request()->is('home') ? 'active' : '' }}">
                                     <a href="{{ route('home') }}" class="menu-link">
@@ -197,7 +176,7 @@
                                 <li class="menu-item {{ request()->is('manuals') || request()->is('manual/add') || request()->is('manual/sub-manuals/*') || request()->is('manual/sub-manuals/content/*') ? 'active' : '' }}">
                                     <a href="{{ route('manual.index') }}" class="menu-link">
                                         <i class="menu-icon tf-icons mdi mdi-book-account"></i>
-                                        <div data-i18n="Documents">Documents</div>
+                                        <div data-i18n="Manuals">Manuals</div>
                                     </a>
                                 </li>
                             @endcan
@@ -210,13 +189,6 @@
                                     </a>
                                 </li>
                             @endcan
-
-                            <li class="menu-item {{ request()->is('pwa-status*') ? 'active' : '' }}">
-                                <a href="{{ route('pwa.status') }}" class="menu-link">
-                                    <i class="menu-icon tf-icons mdi mdi-account-group"></i>
-                                    <div data-i18n="App Status">App Status</div>
-                                </a>
-                            </li>
 
                             @if($user?->hasRole('super-admin'))
                                 <li class="menu-item {{ request()->is('roles*') || request()->is('permissions*') ? 'active open' : '' }}">
@@ -304,279 +276,7 @@
 <!-- CryptoJS Library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-<!-- PWA Scripts -->
-<script src="{{ asset('js/pwa-storage.js') }}"></script>
-<script src="{{ asset('js/secure-viewer.js') }}"></script>
-<script src="{{ asset('js/security-fixes.js') }}"></script>
 @stack('scripts')
-<script>
-    // Check if service workers are supported
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-            navigator.serviceWorker.register('/sw.js')
-                .then(function(registration) {
-                    console.log('[PWA] Service Worker registered successfully:', registration.scope);
-
-                    // Check for updates
-                    registration.addEventListener('updatefound', () => {
-                        const newWorker = registration.installing;
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                // New service worker is available
-                                showUpdateAvailableNotification();
-                            }
-                        });
-                    });
-                })
-                .catch(function(error) {
-                    console.log('[PWA] Service Worker registration failed:', error);
-                });
-        });
-    }
-
-    // PWA Install prompt
-    let deferredPrompt;
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-        // Prevent the mini-infobar from appearing on mobile
-        e.preventDefault();
-        // Stash the event so it can be triggered later.
-        deferredPrompt = e;
-        // Show the install button
-        showInstallButton();
-    });
-
-    function showInstallButton() {
-        // Create install button if it doesn't exist
-        if (!document.getElementById('pwa-install-btn')) {
-            const installBtn = document.createElement('button');
-            installBtn.id = 'pwa-install-btn';
-            installBtn.innerHTML = '<i class="mdi mdi-download"></i> Install App';
-            installBtn.className = 'btn btn-primary btn-sm position-fixed';
-            installBtn.style.cssText = 'bottom: 20px; right: 20px; z-index: 1050; border-radius: 25px; padding: 8px 16px; font-size: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
-
-            installBtn.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    // Show the install prompt
-                    deferredPrompt.prompt();
-                    // Wait for the user to respond to the prompt
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`[PWA] User response to the install prompt: ${outcome}`);
-                    // Clear the deferred prompt
-                    deferredPrompt = null;
-                    // Hide the install button
-                    installBtn.remove();
-                }
-            });
-
-            document.body.appendChild(installBtn);
-        }
-    }
-
-    function showUpdateAvailableNotification() {
-        // Create update notification
-        const updateNotification = document.createElement('div');
-        updateNotification.className = 'alert alert-info position-fixed';
-        updateNotification.style.cssText = 'top: 20px; right: 20px; z-index: 1060; max-width: 300px;';
-        updateNotification.innerHTML = `
-            <div class="d-flex align-items-center">
-                <i class="mdi mdi-information me-2"></i>
-                <div class="flex-grow-1">
-                    <strong>App Update Available</strong><br>
-                    <small>New features and improvements are ready.</small>
-                </div>
-                <button class="btn btn-sm btn-outline-primary ms-2" onclick="updateApp()">Update</button>
-            </div>
-        `;
-
-        document.body.appendChild(updateNotification);
-
-        // Auto-hide after 10 seconds
-        setTimeout(() => {
-            updateNotification.remove();
-        }, 10000);
-    }
-
-    function updateApp() {
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistration().then(function(registration) {
-                if (registration && registration.waiting) {
-                    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-                    window.location.reload();
-                }
-            });
-        }
-    }
-
-    // Cache manual data for offline access
-    function cacheManualData() {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-            // Get all manuals data from the page
-            const manuals = [];
-
-            // Extract manual data from the page (if available)
-            const manualLinks = document.querySelectorAll('a[href*="/manual/sub-manuals/"]');
-            manualLinks.forEach(link => {
-                const href = link.getAttribute('href');
-                const match = href.match(/\/manual\/sub-manuals\/(\d+)/);
-                if (match) {
-                    manuals.push({ id: match[1], name: link.textContent.trim() });
-                }
-            });
-
-            if (manuals.length > 0) {
-                navigator.serviceWorker.controller.postMessage({
-                    type: 'CACHE_MANUAL',
-                    manuals: manuals
-                });
-            }
-        }
-    }
-
-    // Cache manual data when the page loads - but only after auth token is set
-    document.addEventListener('DOMContentLoaded', function() {
-        // Ensure auth token is set before caching
-        async function initializePWAWithAuth() {
-            console.log('[PWA] Initializing PWA with authentication...');
-
-            // Wait for service worker to be ready
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Update auth token first
-            const tokenUpdated = await updateServiceWorkerAuthToken();
-            if (tokenUpdated) {
-                console.log('[PWA] Auth token updated, starting manual caching...');
-                // Wait a bit more to ensure service worker has processed the token
-                setTimeout(cacheManualData, 500);
-            } else {
-                console.warn('[PWA] Failed to update auth token, caching may fail');
-                // Try caching anyway in case session auth works
-                setTimeout(cacheManualData, 1000);
-            }
-        }
-
-        setTimeout(initializePWAWithAuth, 2000); // Delay to ensure page is fully loaded
-    });
-
-    // Add offline/online status indicators
-    function updateConnectionStatus() {
-        const isOnline = navigator.onLine;
-        let statusIndicator = document.getElementById('connection-status');
-
-        if (!statusIndicator) {
-            statusIndicator = document.createElement('div');
-            statusIndicator.id = 'connection-status';
-            statusIndicator.className = 'position-fixed';
-            statusIndicator.style.cssText = 'top: 10px; left: 50%; transform: translateX(-50%); z-index: 1060; padding: 4px 12px; border-radius: 15px; font-size: 12px; transition: all 0.3s ease;';
-            document.body.appendChild(statusIndicator);
-        }
-
-        // In development, check actual network connectivity
-        if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
-            checkActualConnectivity().then(actuallyOnline => {
-                displayConnectionStatus(statusIndicator, actuallyOnline);
-            });
-        } else {
-            displayConnectionStatus(statusIndicator, isOnline);
-        }
-    }
-
-    // Check actual connectivity by making a small request
-    async function checkActualConnectivity() {
-        try {
-            const response = await fetch('/home', {
-                method: 'HEAD',
-                cache: 'no-cache',
-                signal: AbortSignal.timeout(5000)
-            });
-            return response.ok;
-        } catch (error) {
-            console.log('Connectivity check failed:', error);
-            return false;
-        }
-    }
-
-    function displayConnectionStatus(statusIndicator, isOnline) {
-        if (isOnline) {
-            statusIndicator.style.backgroundColor = '#d4edda';
-            statusIndicator.style.color = '#155724';
-            statusIndicator.style.border = '1px solid #c3e6cb';
-            statusIndicator.innerHTML = '🟢 Online';
-            statusIndicator.style.opacity = '0.8';
-
-            // Hide after 3 seconds when coming back online
-            setTimeout(() => {
-                statusIndicator.style.opacity = '0';
-            }, 3000);
-        } else {
-            statusIndicator.style.backgroundColor = '#f8d7da';
-            statusIndicator.style.color = '#721c24';
-            statusIndicator.style.border = '1px solid #f5c6cb';
-            statusIndicator.innerHTML = '🔴 Offline';
-            statusIndicator.style.opacity = '1';
-        }
-    }
-
-    // Listen for online/offline events
-    window.addEventListener('online', updateConnectionStatus);
-    window.addEventListener('offline', updateConnectionStatus);
-
-    // Check initial connection status
-    updateConnectionStatus();
-
-    // PWA Authentication Token Management
-    async function updateServiceWorkerAuthToken() {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-            try {
-                // Fetch authentication token from server
-                const response = await fetch('/pwa/auth-token', {
-                    credentials: 'same-origin',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-
-                if (response.ok) {
-                    const tokenData = await response.json();
-
-                    // Send token to service worker
-                    navigator.serviceWorker.controller.postMessage({
-                        type: 'SET_AUTH_TOKEN',
-                        token: tokenData.token,
-                        expires_at: tokenData.expires_at
-                    });
-
-                    console.log('[PWA] Authentication token sent to service worker');
-                    return true;
-                } else {
-                    console.warn('[PWA] Failed to get authentication token:', response.status);
-                    return false;
-                }
-            } catch (error) {
-                console.error('[PWA] Error updating service worker auth token:', error);
-                return false;
-            }
-        }
-        return false;
-    }
-
-    // Note: Token update is now handled in the PWA initialization above
-
-    // Update token when service worker becomes active
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.addEventListener('controllerchange', function() {
-            console.log('[PWA] Service worker controller changed');
-            setTimeout(() => {
-                updateServiceWorkerAuthToken();
-            }, 500);
-        });
-    }
-
-    // Refresh token periodically (every 30 minutes)
-    setInterval(() => {
-        updateServiceWorkerAuthToken();
-    }, 30 * 60 * 1000);
-</script>
 
 </body>
 </html>

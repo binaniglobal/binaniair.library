@@ -111,33 +111,4 @@ class ManualsController extends Controller
 
         return redirect(route('manual.index', $id))->with('success', 'Sorry, this manual could not be deleted');
     }
-
-    /**
-     * API endpoint to get manuals data for PWA caching
-     */
-    public function apiIndex()
-    {
-        $user = auth()->user();
-        $manuals = collect();
-
-        // Get all manuals and filter by permissions
-        $allManuals = Manuals::all();
-
-        foreach ($allManuals as $manual) {
-            if ($user->hasPermissionTo("access-manual-{$manual->name}")) {
-                $manuals->push([
-                    'id' => $manual->mid,
-                    'name' => $manual->name,
-                    'type' => $manual->type,
-                    'url' => route('manual.items.index', $manual->mid),
-                ]);
-            }
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => $manuals->toArray(),
-            'cached_at' => now()->toISOString(),
-        ]);
-    }
 }
