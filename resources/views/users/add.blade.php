@@ -23,17 +23,30 @@
                     @endif
 
                     <h5 class="card-header">Add Users</h5>
-                    <form class="card-body overflow-hidden" method="POST" action="{{ route('users.create') }}">
+                    <form class="card-body" method="POST" action="{{ route('users.create') }}">
                         @csrf
                         <h6>1. Account Details</h6>
                         <div class="row mb-3">
-                            <label class="col-sm-3 col-form-label" for="first_name">Name</label>
+                            <label class="col-sm-3 col-form-label" for="first_name">Role</label>
                             <div class="col-sm-9">
                                 <input type="text" id="first_name" name="first_name" class="form-control"
                                        value="{{ old('first_name') ? old('first_name'):'' }}"
-                                       placeholder="John"/>
+                                       placeholder=""/>
                             </div>
                         </div>
+
+
+                        <div class="row mb-3">
+                            <label class="col-sm-3 col-form-label" for="last_name">Full Name</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="last_name" name="last_name" class="form-control"
+                                       value="{{ old('last_name') ? old('last_name'):'' }}"
+                                       placeholder="John"/>
+
+                            </div>
+                        </div>
+
+
                         <div class="row mb-3">
                             <label class="col-sm-3 col-form-label" for="email">Email</label>
                             <div class="col-sm-9">
@@ -90,12 +103,12 @@
                                         data-style="btn-default"
                                         multiple
                                         data-actions-box="true">
-{{--                                        <optgroup label="Select multiple permissions for this position.">--}}
-                                            @foreach($Permissions as $permission)
-                                                <option
-                                                    value="{{ $permission->uuid }}">{{ strtoupper($permission->name) }}</option>
-                                            @endforeach
-{{--                                        </optgroup>--}}
+                                        {{--                                        <optgroup label="Select multiple permissions for this position.">--}}
+                                        @foreach($Permissions as $permission)
+                                            <option
+                                                value="{{ $permission->uuid }}">{{ strtoupper($permission->name) }}</option>
+                                        @endforeach
+                                        {{--                                        </optgroup>--}}
                                     </select>
                                     <label for="selectpickerSelectDeselect">Select / Deselect All</label>
                                 </div>
