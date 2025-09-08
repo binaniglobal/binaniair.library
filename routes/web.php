@@ -21,12 +21,13 @@ Auth::routes([
     'register' => false,
 ]);
 
-Route::get('/storage/link', function () {
-    Artisan::call('storage:link');
+Route::get('/optimize', function (){
+   Artisan::call('optimize:clear');
+   return redirect()->route('login');
 });
 
-Route::get('/maintenance/up', function () {
-    Artisan::call('up');
+Route::get('/storage/link', function () {
+    Artisan::call('storage:link');
 });
 
 Route::middleware(['auth'])->group(function () {
