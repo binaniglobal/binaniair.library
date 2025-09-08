@@ -21,14 +21,7 @@ Auth::routes([
     'register' => false,
 ]);
 
-Route::get('/optimize', function (){
-   Artisan::call('optimize:clear');
-   return redirect()->route('login');
-});
 
-Route::get('/storage/link', function () {
-    Artisan::call('storage:link');
-});
 
 Route::middleware(['auth'])->group(function () {
 
@@ -68,7 +61,16 @@ Route::middleware(['auth', 'role:super-admin'])->group(function () {
 
     Route::get('/maintenance/down', function () {
         Artisan::call('down');
-    })->middleware(['auth', 'role:super-admin']);
+    })->middleware(['auth', 'role:super-admin|SuperAdmin']);
+
+    Route::get('/optimize', function (){
+        Artisan::call('optimize:clear');
+        return redirect()->route('login');
+    })->middleware(['auth', 'role:super-admin|SuperAdmin']);
+
+    Route::get('/storage/link', function () {
+        Artisan::call('storage:link');
+    })->middleware(['auth', 'role:super-admin|SuperAdmin']);
 
     // Add Roles
     Route::get('/roles', [RolesController::class, 'index'])->name('roles');
