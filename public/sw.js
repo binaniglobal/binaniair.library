@@ -5,7 +5,7 @@
 // responsibility is to manage caching, offline functionality, and background tasks.
 
 // Cache names
-const CACHE_VERSION = 'v1.0.6'; // Incremented version
+const CACHE_VERSION = 'v1.0.8'; // Incremented version
 const STATIC_CACHE_NAME = `library-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `library-dynamic-${CACHE_VERSION}`;
 const MANUALS_CACHE_NAME = `library-manuals-${CACHE_VERSION}`;
@@ -116,15 +116,36 @@ async function cacheFirst(request, cacheName) {
 
 async function networkFirst(request, cacheName) {
     try {
+        // 1. Try to fetch from the network
         const networkResponse = await fetch(request);
         if (networkResponse.ok) {
+            // If successful, cache the response and return it
             const cache = await caches.open(cacheName);
             self.waitUntil(cache.put(request, networkResponse.clone()));
         }
         return networkResponse;
     } catch (error) {
+        // 2. If network fails, try to get the item from the cache
         const cachedResponse = await caches.match(request);
-        return cachedResponse || await caches.match(OFFLINE_URL);
+        if (cachedResponse) {
+            return cachedResponse;
+        }
+
+        // 3. If it's a page navigation and not in cache, serve the offline page
+        if (request.destination === 'document') {
+            const offlinePage = await caches.match(OFFLINE_URL);
+            if (offlinePage) {
+                return offlinePage;
+            }
+        }
+
+        // 4. FINAL FALLBACK: If all else fails, return a generic, safe response.
+        // This is the ultimate safety net that prevents the TypeError.
+        return new Response('Network error: Resource not available offline.', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: { 'Content-Type': 'text/plain' }
+        });
     }
 }
 
