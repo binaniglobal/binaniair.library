@@ -97,13 +97,13 @@ self.addEventListener('fetch', event => {
 
     if (request.method !== 'GET') return;
 
-    // PDFs: Stale-while-revalidate
+    // PDFs: Network first, then cache
     if (url.pathname.includes('/raw')) {
-        event.respondWith(staleWhileRevalidate(request, MANUALS_CACHE_NAME));
-        // Static assets: Cache first, then network
+        event.respondWith(networkFirst(request, MANUALS_CACHE_NAME));
+    // Static assets: Cache first, then network
     } else if (STATIC_ASSETS.some(asset => url.pathname.endsWith(asset.split('?')[0]))) {
         event.respondWith(cacheFirst(request, STATIC_CACHE_NAME));
-        // Other requests: Network first, then cache
+    // Other requests: Network first, then cache
     } else {
         event.respondWith(networkFirst(request, DYNAMIC_CACHE_NAME));
     }
@@ -126,18 +126,6 @@ async function networkFirst(request, cacheName) {
         const cachedResponse = await caches.match(request);
         return cachedResponse || await caches.match(OFFLINE_URL);
     }
-}
-
-async function staleWhileRevalidate(request, cacheName) {
-    const cache = await caches.open(cacheName);
-    const cachedResponse = await cache.match(request);
-    const fetchPromise = fetch(request).then(networkResponse => {
-        if (networkResponse.ok) {
-            cache.put(request, networkResponse.clone());
-        }
-        return networkResponse;
-    });
-    return cachedResponse || fetchPromise;
 }
 
 self.addEventListener('message', event => {
