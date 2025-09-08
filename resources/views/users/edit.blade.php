@@ -22,27 +22,32 @@
                         </div>
                     @endif
                     <h5 class="card-header">Edit Users</h5>
-                    <form class="card-body overflow-hidden" action="{{ route('users.update', $Edit['uuid']) }}"
+                    <form class="card-body" action="{{ route('users.update', $Edit['uuid']) }}"
                           method="POST">
                         @csrf
                         @method('PUT')
                         <h6>1. Account Details</h6>
+
                         <div class="row mb-3">
-                            <label class="col-sm-3 col-form-label" for="first_name">First Name</label>
+                            <label class="col-sm-3 col-form-label" for="first_name">Role</label>
                             <div class="col-sm-9">
-                                <input type="text" id="first_name" value="{{ $Edit['name'] }}"
-                                       class="form-control" readonly
+                                <input type="text" id="first_name" name="first_name" value="{{ $Edit['surname'] }}"
+                                       class="form-control"
                                        placeholder="John"/>
                             </div>
                         </div>
+
                         <div class="row mb-3">
-                            <label class="col-sm-3 col-form-label" for="last_name">Last Name</label>
+                            <label class="col-sm-3 col-form-label" for="last_name">Full Name</label>
                             <div class="col-sm-9">
-                                <input type="text" id="last_name" value="{{ $Edit['surname'] }}"
-                                       class="form-control" readonly
-                                       placeholder="Doe"/>
+
+                                <input type="text" id="last_name" name="last_name" value="{{ $Edit['name'] }}"
+                                       class="form-control"
+                                       placeholder=""/>
+
                             </div>
                         </div>
+
                         <div class="row mb-3">
                             <label class="col-sm-3 col-form-label" for="email">Email</label>
                             <div class="col-sm-9">
@@ -80,7 +85,7 @@
                                     <select id="role" name="role" class="selectpicker w-100" data-style="btn-default">
                                         @foreach($Roles as $role)
                                             <option value="{{$role->uuid}}" {{ in_array($role->uuid, $AssignedRoles) ? 'selected': '' }}>
-                                             {{ strtoupper($role->name) }}
+                                                {{ strtoupper($role->name) }}
                                             </option>
                                         @endforeach
                                     </select>
