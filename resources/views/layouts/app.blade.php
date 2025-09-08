@@ -197,7 +197,7 @@
                                 <li class="menu-item {{ request()->is('manuals') || request()->is('manual/add') || request()->is('manual/sub-manuals/*') || request()->is('manual/sub-manuals/content/*') ? 'active' : '' }}">
                                     <a href="{{ route('manual.index') }}" class="menu-link">
                                         <i class="menu-icon tf-icons mdi mdi-book-account"></i>
-                                        <div data-i18n="Manuals">Manuals</div>
+                                        <div data-i18n="Documents">Documents</div>
                                     </a>
                                 </li>
                             @endcan
@@ -438,10 +438,10 @@
         // Ensure auth token is set before caching
         async function initializePWAWithAuth() {
             console.log('[PWA] Initializing PWA with authentication...');
-            
+
             // Wait for service worker to be ready
             await new Promise(resolve => setTimeout(resolve, 1000));
-            
+
             // Update auth token first
             const tokenUpdated = await updateServiceWorkerAuthToken();
             if (tokenUpdated) {
@@ -454,7 +454,7 @@
                 setTimeout(cacheManualData, 1000);
             }
         }
-        
+
         setTimeout(initializePWAWithAuth, 2000); // Delay to ensure page is fully loaded
     });
 
@@ -480,7 +480,7 @@
             displayConnectionStatus(statusIndicator, isOnline);
         }
     }
-    
+
     // Check actual connectivity by making a small request
     async function checkActualConnectivity() {
         try {
@@ -495,7 +495,7 @@
             return false;
         }
     }
-    
+
     function displayConnectionStatus(statusIndicator, isOnline) {
         if (isOnline) {
             statusIndicator.style.backgroundColor = '#d4edda';
@@ -523,7 +523,7 @@
 
     // Check initial connection status
     updateConnectionStatus();
-    
+
     // PWA Authentication Token Management
     async function updateServiceWorkerAuthToken() {
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
@@ -535,17 +535,17 @@
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 });
-                
+
                 if (response.ok) {
                     const tokenData = await response.json();
-                    
+
                     // Send token to service worker
                     navigator.serviceWorker.controller.postMessage({
                         type: 'SET_AUTH_TOKEN',
                         token: tokenData.token,
                         expires_at: tokenData.expires_at
                     });
-                    
+
                     console.log('[PWA] Authentication token sent to service worker');
                     return true;
                 } else {
@@ -559,9 +559,9 @@
         }
         return false;
     }
-    
+
     // Note: Token update is now handled in the PWA initialization above
-    
+
     // Update token when service worker becomes active
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.addEventListener('controllerchange', function() {
@@ -571,7 +571,7 @@
             }, 500);
         });
     }
-    
+
     // Refresh token periodically (every 30 minutes)
     setInterval(() => {
         updateServiceWorkerAuthToken();
