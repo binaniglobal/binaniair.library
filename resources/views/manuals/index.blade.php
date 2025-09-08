@@ -99,13 +99,6 @@
                         },
                     }
                     @endcan
-                    , {
-                        text: '<i class="mdi mdi-download"></i> Cache for Offline',
-                        className: 'btn btn-info btn-sm',
-                        action: function () {
-                            cacheAllManuals();
-                        }
-                    }
 
                 ],
                 "language": {
