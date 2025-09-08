@@ -176,7 +176,7 @@
                                 <li class="menu-item {{ request()->is('manuals') || request()->is('manual/add') || request()->is('manual/sub-manuals/*') || request()->is('manual/sub-manuals/content/*') ? 'active' : '' }}">
                                     <a href="{{ route('manual.index') }}" class="menu-link">
                                         <i class="menu-icon tf-icons mdi mdi-book-account"></i>
-                                        <div data-i18n="Manuals">Manuals</div>
+                                        <div data-i18n="Documents">Documents</div>
                                     </a>
                                 </li>
                             @endcan
