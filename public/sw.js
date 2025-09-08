@@ -5,10 +5,9 @@
 // responsibility is to manage caching, offline functionality, and background tasks.
 
 // Cache names
-const CACHE_VERSION = 'v1.0.8'; // Incremented version
+const CACHE_VERSION = 'v1.0.9'; // Incremented version
 const STATIC_CACHE_NAME = `library-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE_NAME = `library-dynamic-${CACHE_VERSION}`;
-const MANUALS_CACHE_NAME = `library-manuals-${CACHE_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
 // Static assets to cache immediately
@@ -52,8 +51,6 @@ const STATIC_ASSETS = [
     '/manifest.json'
 ];
 
-let authToken = null;
-
 // Install event - cache static assets
 self.addEventListener('install', event => {
     console.log('[ServiceWorker] Installing...');
@@ -77,9 +74,7 @@ self.addEventListener('activate', event => {
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames.map(cacheName => {
-                    if (cacheName !== STATIC_CACHE_NAME &&
-                        cacheName !== DYNAMIC_CACHE_NAME &&
-                        cacheName !== MANUALS_CACHE_NAME) {
+                    if (cacheName !== STATIC_CACHE_NAME && cacheName !== DYNAMIC_CACHE_NAME) {
                         console.log('[ServiceWorker] Deleting old cache:', cacheName);
                         return caches.delete(cacheName);
                     }
@@ -97,11 +92,14 @@ self.addEventListener('fetch', event => {
 
     if (request.method !== 'GET') return;
 
-    // PDFs: Network first, then cache
+    // PDFs: Online only. Go directly to the network.
     if (url.pathname.includes('/raw')) {
-        event.respondWith(networkFirst(request, MANUALS_CACHE_NAME));
+        event.respondWith(fetch(request));
+        return;
+    }
+
     // Static assets: Cache first, then network
-    } else if (STATIC_ASSETS.some(asset => url.pathname.endsWith(asset.split('?')[0]))) {
+    if (STATIC_ASSETS.some(asset => url.pathname.endsWith(asset.split('?')[0]))) {
         event.respondWith(cacheFirst(request, STATIC_CACHE_NAME));
     // Other requests: Network first, then cache
     } else {
@@ -116,22 +114,18 @@ async function cacheFirst(request, cacheName) {
 
 async function networkFirst(request, cacheName) {
     try {
-        // 1. Try to fetch from the network
         const networkResponse = await fetch(request);
         if (networkResponse.ok) {
-            // If successful, cache the response and return it
             const cache = await caches.open(cacheName);
             self.waitUntil(cache.put(request, networkResponse.clone()));
         }
         return networkResponse;
     } catch (error) {
-        // 2. If network fails, try to get the item from the cache
         const cachedResponse = await caches.match(request);
         if (cachedResponse) {
             return cachedResponse;
         }
 
-        // 3. If it's a page navigation and not in cache, serve the offline page
         if (request.destination === 'document') {
             const offlinePage = await caches.match(OFFLINE_URL);
             if (offlinePage) {
@@ -139,8 +133,6 @@ async function networkFirst(request, cacheName) {
             }
         }
 
-        // 4. FINAL FALLBACK: If all else fails, return a generic, safe response.
-        // This is the ultimate safety net that prevents the TypeError.
         return new Response('Network error: Resource not available offline.', {
             status: 503,
             statusText: 'Service Unavailable',
@@ -149,40 +141,9 @@ async function networkFirst(request, cacheName) {
     }
 }
 
+// Remove message listeners for caching PDFs
 self.addEventListener('message', event => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
     }
-    if (event.data && event.data.type === 'SET_AUTH_TOKEN') {
-        authToken = event.data.token;
-        console.log('[ServiceWorker] Auth token received.');
-    } else if (event.data && event.data.type === 'CACHE_PDF') {
-        const {raw_url, pwa_url} = event.data.payload;
-        event.waitUntil(cachePdf(raw_url, pwa_url));
-    }
 });
-
-async function cachePdf(rawUrl, pwaUrl) {
-    if (!rawUrl || !pwaUrl) {
-        console.error('[ServiceWorker] Both raw_url and pwa_url are required for caching.');
-        return;
-    }
-
-    const headers = {'X-Requested-With': 'XMLHttpRequest'};
-    if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
-    }
-
-    try {
-        const response = await fetch(pwaUrl, {headers, credentials: 'include'});
-        if (response.ok) {
-            const cache = await caches.open(MANUALS_CACHE_NAME);
-            await cache.put(rawUrl, response);
-            console.log(`[ServiceWorker] Successfully cached PDF: ${rawUrl}`);
-        } else {
-            console.error(`[ServiceWorker] Failed to fetch PDF from ${pwaUrl}. Status: ${response.status}`);
-        }
-    } catch (error) {
-        console.error(`[ServiceWorker] Error caching PDF ${pwaUrl}:`, error);
-    }
-}
